@@ -31,6 +31,7 @@
         @drop="onDrop"
         @dragover="onDragOver"
         @connect="onConnect"
+        :node-types="nodeTypes"
       >
         <!-- Add controls -->
         <Controls />
@@ -50,9 +51,10 @@
 </template>
 
 <script>
-import { ref, reactive } from 'vue'
+import { ref, markRaw } from 'vue'
 import { VueFlow, Controls, MiniMap } from '@vue-flow/core'
 import NodePalette from './NodePalette.vue'
+import CustomNode from './CustomNode.vue'
 import '@vue-flow/core/dist/style.css'
 import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/controls/dist/style.css'
@@ -70,6 +72,11 @@ export default {
     const nodes = ref([])
     const edges = ref([])
     const executionOutput = ref('Ready to run workflow...')
+
+    // Register custom node types
+    const nodeTypes = {
+      custom: markRaw(CustomNode)
+    }
 
     // Node counter for unique IDs
     let nodeId = 0
@@ -90,10 +97,10 @@ export default {
         y: event.clientY - 100,
       }
 
-      // Create a new node
+      // Create a new node using custom node type
       const newNode = {
         id: `${nodeType}-${nodeId++}`,
-        type: 'default',
+        type: 'custom',
         position,
         data: {
           label: getNodeLabel(nodeType),
@@ -107,6 +114,15 @@ export default {
     const onDragOver = (event) => {
       event.preventDefault()
       event.dataTransfer.dropEffect = 'move'
+    }
+
+    const onConnect = (params) => {
+      edges.value.push({
+        id: `edge-${params.source}-${params.target}`,
+        source: params.source,
+        target: params.target,
+        type: 'default',
+      })
     }
 
     const getNodeLabel = (nodeType) => {
@@ -158,20 +174,13 @@ export default {
       nodes,
       edges,
       executionOutput,
+      nodeTypes,
       onNodeDrag,
       onDrop,
       onDragOver,
       onConnect,
       runWorkflow,
       clearCanvas,
-    }
-    const onConnect = (params) => {
-      edges.value.push({
-        id: `edge-${params.source}-${params.target}`,
-        source: params.source,
-        target: params.target,
-        type: 'default',
-      })
     }
   },
 }
