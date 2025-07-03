@@ -184,6 +184,43 @@ export default {
     }
   },
 }
+// Save workflow
+const saveWorkflow = () => {
+  const workflow = {
+    nodes: nodes.value,
+    edges: edges.value
+  }
+  localStorage.setItem('workflow', JSON.stringify(workflow))
+  alert('Workflow saved!')
+}
+
+// Load workflow
+const loadWorkflow = () => {
+  const saved = localStorage.getItem('workflow')
+  if (saved) {
+    const workflow = JSON.parse(saved)
+    nodes.value = workflow.nodes
+    edges.value = workflow.edges
+    alert('Workflow loaded!')
+  }
+}
+const exportWorkflow = () => {
+  const workflow = {
+    nodes: nodes.value,
+    edges: edges.value,
+    timestamp: new Date().toISOString()
+  }
+  
+  const blob = new Blob([JSON.stringify(workflow, null, 2)], {
+    type: 'application/json'
+  })
+  
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'workflow.json'
+  link.click()
+}
 </script>
 
 <style scoped>
