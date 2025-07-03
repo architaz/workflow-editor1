@@ -2,24 +2,33 @@
   <div id="app" class="workflow-container">
     <div class="workflow-editor h-screen w-screen flex">
       <!-- Sidebar with nodes -->
-      <div class="sidebar w-64 bg-gray-100 p-4 border-r border-gray-300">
-        <h3 class="text-lg font-bold mb-4 text-gray-800">Workflow Nodes</h3>
+      <div class="sidebar w-72 bg-gradient-to-br from-slate-900 to-slate-800 p-6 border-r border-slate-700/50 shadow-xl">
+        <div class="mb-8">
+          <h3 class="text-xl font-bold text-white mb-2">Workflow Nodes</h3>
+          <p class="text-slate-400 text-sm">Drag and drop to build your workflow</p>
+        </div>
         <NodePalette @node-drag="onNodeDrag" />
       </div>
 
       <!-- Main canvas area -->
-      <div class="canvas-container flex-1 relative bg-gray-50">
-        <div class="controls absolute top-4 left-4 z-10 space-x-2">
+      <div class="canvas-container flex-1 relative bg-gradient-to-br from-slate-50 to-slate-100">
+        <div class="controls absolute top-6 left-6 z-10 flex gap-3">
           <button
             @click="runWorkflow"
-            class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 shadow-md"
+            class="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-medium flex items-center gap-2"
           >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" />
+            </svg>
             Run Flow
           </button>
           <button
             @click="clearCanvas"
-            class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 shadow-md"
+            class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-medium flex items-center gap-2"
           >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
             Clear
           </button>
         </div>
@@ -42,12 +51,13 @@
       </div>
 
       <!-- Output panel -->
-      <div class="output-panel w-80 bg-white p-4 border-l border-gray-300">
-        <h3 class="text-lg font-bold mb-4 text-gray-800">Execution Output</h3>
-        <div
-          class="output-content bg-gray-50 p-3 rounded border h-96 overflow-y-auto text-sm font-mono"
-        >
-          <pre class="whitespace-pre-wrap">{{ executionOutput }}</pre>
+      <div class="output-panel w-96 bg-white p-6 border-l border-slate-200 shadow-xl">
+        <div class="mb-6">
+          <h3 class="text-xl font-bold text-slate-800 mb-2">Execution Output</h3>
+          <p class="text-slate-600 text-sm">Watch your workflow come to life</p>
+        </div>
+        <div class="output-content bg-slate-900 p-4 rounded-xl border border-slate-800 h-96 overflow-y-auto text-sm font-mono shadow-inner">
+          <pre class="whitespace-pre-wrap text-green-400">{{ executionOutput }}</pre>
         </div>
       </div>
     </div>
@@ -125,7 +135,8 @@ export default {
         id: `edge-${params.source}-${params.target}`,
         source: params.source,
         target: params.target,
-        type: 'default',
+        type: 'smoothstep',
+        style: { stroke: '#3b82f6', strokeWidth: 2 },
       }
       edges.value = [...edges.value, newEdge]
       console.log('Edge connected:', newEdge)
@@ -148,7 +159,7 @@ export default {
         return
       }
 
-      executionOutput.value = 'Starting workflow execution...\n\n'
+      executionOutput.value = '🚀 Starting workflow execution...\n\n'
 
       nodes.value.forEach((node, index) => {
         setTimeout(() => {
@@ -161,24 +172,24 @@ export default {
     const simulateNodeExecution = (nodeType) => {
       const simulations = {
         'get-reviews':
-          '✓ Fetched 150 customer reviews from database\n  Sample: "Great product, highly recommend!"',
+          '✅ Fetched 150 customer reviews from database\n  📝 Sample: "Great product, highly recommend!"',
         'k-means':
-          '✓ Applied K-means clustering (k=3)\n  Cluster 1: 45 reviews\n  Cluster 2: 67 reviews\n  Cluster 3: 38 reviews',
+          '🔍 Applied K-means clustering (k=3)\n  📊 Cluster 1: 45 reviews\n  📊 Cluster 2: 67 reviews\n  📊 Cluster 3: 38 reviews',
         'clusters-to-list':
-          '✓ Converted clusters to customer segments\n  Segments: Happy, Neutral, Unhappy Customers',
+          '📋 Converted clusters to customer segments\n  🎯 Segments: Happy, Neutral, Unhappy Customers',
         'customer-insights':
-          '✓ Generated insights using AI agent\n  Tags: "price-sensitive", "quality-focused", "service-oriented"',
+          '🤖 Generated insights using AI agent\n  🏷️ Tags: "price-sensitive", "quality-focused", "service-oriented"',
         'insights-to-sheets':
-          '✓ Data exported to Google Sheets\n  File: customer-insights-2024.xlsx',
+          '📤 Data exported to Google Sheets\n  📄 File: customer-insights-2024.xlsx',
       }
-      return simulations[nodeType] || '✓ Execution completed'
+      return simulations[nodeType] || '✅ Execution completed'
     }
 
     const clearCanvas = () => {
       nodes.value = []
       edges.value = []
       executionOutput.value =
-        'Canvas cleared. Ready for new workflow...\n\nDrag nodes from the left panel to start building.'
+        '🧹 Canvas cleared. Ready for new workflow...\n\nDrag nodes from the left panel to start building.'
     }
 
     return {
@@ -215,8 +226,7 @@ export default {
 html,
 body {
   height: 100%;
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
     'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -234,25 +244,139 @@ body {
 
 .vue-flow-container {
   height: 100%;
-  background-color: #f8fafc;
-  background-image:
-    linear-gradient(#e2e8f0 1px, transparent 1px),
-    linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
-  background-size: 20px 20px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.15) 1px, transparent 0);
+  background-size: 24px 24px;
+  position: relative;
+}
+
+.vue-flow-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.05) 100%);
+  pointer-events: none;
 }
 
 /* Custom node styles fallback */
 .vue-flow__node-custom {
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 10px;
-  min-width: 150px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 180px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
 }
 
 .vue-flow__node-custom:hover {
   border-color: #3b82f6;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.vue-flow__node-custom.selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Controls styling */
+.vue-flow__controls {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.vue-flow__controls-button {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.vue-flow__controls-button:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+/* Minimap styling */
+.vue-flow__minimap {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Edge styling */
+.vue-flow__edge path {
+  stroke: #3b82f6;
+  stroke-width: 2;
+}
+
+.vue-flow__edge.selected path {
+  stroke: #1d4ed8;
+  stroke-width: 3;
+}
+
+/* Connection line styling */
+.vue-flow__connectionline {
+  stroke: #3b82f6;
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+}
+
+/* Handle styling */
+.vue-flow__handle {
+  background: #3b82f6;
+  border: 2px solid #ffffff;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.vue-flow__handle:hover {
+  background: #1d4ed8;
+  transform: scale(1.2);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.8);
+}
+
+/* Animation for buttons */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 </style>
