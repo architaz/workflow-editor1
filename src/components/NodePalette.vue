@@ -76,6 +76,41 @@ export default {
         description: 'Save results to spreadsheet',
         iconClass: 'bg-gradient-to-br from-red-500 to-red-600',
         icon: '📈'
+      },
+      {
+        type: 'web-scraper',
+        label: 'Web Scraper',
+        description: 'Extract data from websites and reviews',
+        iconClass: 'bg-gradient-to-br from-indigo-500 to-indigo-600',
+        icon: '🕷️'
+      },
+      {
+        type: 'slack-notifier',
+        label: 'Slack Notifier',
+        description: 'Send notifications to Slack channels',
+        iconClass: 'bg-gradient-to-br from-cyan-500 to-cyan-600',
+        icon: '💬'
+      },
+      {
+        type: 'http-api',
+        label: 'HTTP API',
+        description: 'Connect to external APIs and services',
+        iconClass: 'bg-gradient-to-br from-orange-500 to-orange-600',
+        icon: '🌐'
+      },
+      {
+        type: 'email-sender',
+        label: 'Email Sender',
+        description: 'Send reports and notifications via email',
+        iconClass: 'bg-gradient-to-br from-pink-500 to-pink-600',
+        icon: '✉️'
+      },
+      {
+        type: 'data-validator',
+        label: 'Data Validator',
+        description: 'Clean and validate input data quality',
+        iconClass: 'bg-gradient-to-br from-teal-500 to-teal-600',
+        icon: '✅'
       }
     ]
     

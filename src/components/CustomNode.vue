@@ -100,6 +100,31 @@ export default {
           text: '📋',
           glow: 'shadow-red-500/50',
         },
+        'web-scraper': {
+          class: 'from-indigo-500 via-indigo-600 to-purple-600',
+          text: '🕷️',
+          glow: 'shadow-indigo-500/50',
+        },
+        'slack-notifier': {
+          class: 'from-cyan-500 via-cyan-600 to-blue-600',
+          text: '💬',
+          glow: 'shadow-cyan-500/50',
+        },
+        'http-api': {
+          class: 'from-orange-500 via-orange-600 to-red-600',
+          text: '🌐',
+          glow: 'shadow-orange-500/50',
+        },
+        'email-sender': {
+          class: 'from-pink-500 via-pink-600 to-rose-600',
+          text: '✉️',
+          glow: 'shadow-pink-500/50',
+        },
+        'data-validator': {
+          class: 'from-teal-500 via-teal-600 to-cyan-600',
+          text: '✅',
+          glow: 'shadow-teal-500/50',
+        },
       }
       return (
         icons[nodeType] || {
@@ -117,6 +142,11 @@ export default {
         'clusters-to-list': 'Transformer',
         'customer-insights': 'AI Agent',
         'insights-to-sheets': 'Export',
+        'web-scraper': 'Data Extractor',
+        'slack-notifier': 'Notification',
+        'http-api': 'API Connector',
+        'email-sender': 'Communication',
+        'data-validator': 'Data Quality',
       }
       return labels[nodeType] || 'Processing Node'
     }
