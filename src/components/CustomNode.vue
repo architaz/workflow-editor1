@@ -1,10 +1,6 @@
 <template>
-  <div class="custom-node group" :class="{ 'executing': isExecuting, 'selected': isSelected }">
-    <Handle 
-      type="target" 
-      :position="Position.Top" 
-      class="handle-target" 
-    />
+  <div class="custom-node group" :class="{ executing: isExecuting, selected: isSelected }">
+    <Handle type="target" :position="Position.Top" class="handle-target" />
 
     <!-- Background gradient overlay -->
     <div class="node-backdrop"></div>
@@ -22,13 +18,13 @@
           <div class="status-ring"></div>
         </div>
       </div>
-      
+
       <div class="node-body">
         <div class="node-label">{{ data.label }}</div>
         <div class="node-type">{{ getNodeTypeLabel(data.nodeType) }}</div>
         <div class="node-description" v-if="data.description">{{ data.description }}</div>
       </div>
-      
+
       <!-- Enhanced progress bar -->
       <div class="progress-container" v-if="showProgress">
         <div class="progress-track">
@@ -47,12 +43,8 @@
       </div>
     </div>
 
-    <Handle 
-      type="source" 
-      :position="Position.Bottom" 
-      class="handle-source" 
-    />
-    
+    <Handle type="source" :position="Position.Bottom" class="handle-source" />
+
     <!-- Enhanced animated border -->
     <div class="animated-border"></div>
     <div class="node-shadow"></div>
@@ -69,12 +61,12 @@ export default {
   props: {
     data: {
       type: Object,
-      required: true
+      required: true,
     },
     selected: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   setup(props) {
     const isExecuting = ref(false)
@@ -83,37 +75,39 @@ export default {
 
     const getIconInfo = (nodeType) => {
       const icons = {
-        'get-reviews': { 
-          class: 'from-blue-500 via-blue-600 to-indigo-600', 
+        'get-reviews': {
+          class: 'from-blue-500 via-blue-600 to-indigo-600',
           text: '📊',
-          glow: 'shadow-blue-500/50'
+          glow: 'shadow-blue-500/50',
         },
-        'k-means': { 
-          class: 'from-emerald-500 via-green-600 to-teal-600', 
+        'k-means': {
+          class: 'from-emerald-500 via-green-600 to-teal-600',
           text: '🔍',
-          glow: 'shadow-green-500/50'
+          glow: 'shadow-green-500/50',
         },
-        'clusters-to-list': { 
-          class: 'from-amber-500 via-yellow-600 to-orange-600', 
+        'clusters-to-list': {
+          class: 'from-amber-500 via-yellow-600 to-orange-600',
           text: '📈',
-          glowL: 'shadow-yellow-500/50'
+          glowL: 'shadow-yellow-500/50',
         },
-        'customer-insights': { 
-          class: 'from-purple-500 via-violet-600 to-indigo-600', 
+        'customer-insights': {
+          class: 'from-purple-500 via-violet-600 to-indigo-600',
           text: '🧠',
-          glow: 'shadow-purple-500/50'
+          glow: 'shadow-purple-500/50',
         },
-        'insights-to-sheets': { 
-          class: 'from-rose-500 via-red-600 to-pink-600', 
+        'insights-to-sheets': {
+          class: 'from-rose-500 via-red-600 to-pink-600',
           text: '📋',
-          glow: 'shadow-red-500/50'
+          glow: 'shadow-red-500/50',
         },
       }
-      return icons[nodeType] || { 
-        class: 'from-slate-500 via-gray-600 to-zinc-600', 
-        text: '⚙️',
-        glow: 'shadow-gray-500/50'
-      }
+      return (
+        icons[nodeType] || {
+          class: 'from-slate-500 via-gray-600 to-zinc-600',
+          text: '⚙️',
+          glow: 'shadow-gray-500/50',
+        }
+      )
     }
 
     const getNodeTypeLabel = (nodeType) => {
@@ -143,7 +137,7 @@ export default {
       isExecuting.value = true
       showProgress.value = true
       progressPercent.value = 0
-      
+
       const interval = setInterval(() => {
         progressPercent.value += Math.random() * 15
         if (progressPercent.value >= 100) {
@@ -177,7 +171,7 @@ export default {
       statusClass,
       progressPercent,
       showProgress,
-      simulateExecution
+      simulateExecution,
     }
   },
 }
@@ -193,7 +187,7 @@ export default {
   padding: 0;
   min-width: 220px;
   max-width: 300px;
-  box-shadow: 
+  box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 2px 4px -1px rgba(0, 0, 0, 0.03),
     0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -208,16 +202,18 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.1) 0%, 
-    rgba(248, 250, 252, 0.05) 50%, 
-    rgba(241, 245, 249, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(248, 250, 252, 0.05) 50%,
+    rgba(241, 245, 249, 0.1) 100%
+  );
   z-index: 0;
 }
 
 .custom-node:hover {
   border-color: rgba(59, 130, 246, 0.5);
-  box-shadow: 
+  box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04),
     0 0 0 1px rgba(59, 130, 246, 0.1),
@@ -227,7 +223,7 @@ export default {
 
 .custom-node.selected {
   border-color: rgba(59, 130, 246, 0.8);
-  box-shadow: 
+  box-shadow:
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04),
     0 0 0 2px rgba(59, 130, 246, 0.3),
@@ -267,7 +263,7 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 18px;
-  box-shadow: 
+  box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -292,7 +288,7 @@ export default {
 
 .group:hover .node-icon {
   transform: scale(1.1) rotate(5deg);
-  box-shadow: 
+  box-shadow:
     0 8px 25px -5px rgba(0, 0, 0, 0.15),
     0 4px 6px -2px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -406,10 +402,7 @@ export default {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(255, 255, 255, 0.4), 
-    transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
@@ -455,12 +448,14 @@ export default {
   right: -1px;
   bottom: -1px;
   border-radius: 21px;
-  background: linear-gradient(45deg, 
-    transparent, 
-    rgba(59, 130, 246, 0.1), 
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(59, 130, 246, 0.1),
     transparent,
     rgba(139, 92, 246, 0.1),
-    transparent);
+    transparent
+  );
   background-size: 400% 400%;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -491,37 +486,103 @@ export default {
 
 .handle-target,
 .handle-source {
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
-  border: 3px solid rgba(255, 255, 255, 0.9);
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 
+  background: linear-gradient(135deg, #3b82f6, #6366f1) !important;
+  border: 3px solid rgba(255, 255, 255, 0.9) !important;
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.1),
-    0 0 0 2px rgba(59, 130, 246, 0.2);
+    0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 10 !important;
 }
 
 .handle-target:hover,
 .handle-source:hover {
-  background: linear-gradient(135deg, #1d4ed8, #4f46e5);
-  transform: scale(1.4);
-  box-shadow: 
+  background: linear-gradient(135deg, #1d4ed8, #4f46e5) !important;
+  transform: scale(1.4) !important;
+  box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.15),
-    0 0 0 4px rgba(59, 130, 246, 0.3);
+    0 0 0 4px rgba(59, 130, 246, 0.3) !important;
 }
 
 .handle-target {
-  top: -7px;
+  top: -7px !important;
 }
 
 .handle-source {
-  bottom: -7px;
+  bottom: -7px !important;
+}
+
+/* Add these styles to your CustomNode.vue <style> section */
+
+.handle-target,
+.handle-source {
+  position: absolute !important;
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  background: #3b82f6 !important;
+  border: 2px solid #ffffff !important;
+  z-index: 1000 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.handle-target:hover,
+.handle-source:hover {
+  background: linear-gradient(135deg, #1d4ed8, #4f46e5) !important;
+  transform: translateX(-50%) scale(1.3) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.handle-target {
+  top: -8px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+.handle-source {
+  bottom: -8px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+:deep(.vue-flow__handle) {
+  background: #3b82f6 !important;
+  border: 2px solid #ffffff !important;
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 1000 !important;
+  transition: all 0.3s ease !important;
+}
+
+:deep(.vue-flow__handle:hover) {
+  background: #1d4ed8 !important;
+  transform: scale(1.3) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+:deep(.vue-flow__handle-top) {
+  top: -7px !important;
+}
+
+:deep(.vue-flow__handle-bottom) {
+  bottom: -7px !important;
 }
 
 /* Animations */
 @keyframes statusPulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -533,14 +594,14 @@ export default {
 
 @keyframes executeGlow {
   0% {
-    box-shadow: 
+    box-shadow:
       0 20px 25px -5px rgba(0, 0, 0, 0.1),
       0 10px 10px -5px rgba(0, 0, 0, 0.04),
       0 0 0 1px rgba(245, 158, 11, 0.3),
       0 0 20px rgba(245, 158, 11, 0.2);
   }
   100% {
-    box-shadow: 
+    box-shadow:
       0 20px 25px -5px rgba(0, 0, 0, 0.1),
       0 10px 10px -5px rgba(0, 0, 0, 0.04),
       0 0 0 2px rgba(245, 158, 11, 0.5),
@@ -584,28 +645,31 @@ export default {
     background: rgba(15, 23, 42, 0.95);
     border-color: rgba(51, 65, 85, 0.8);
   }
-  
+
   .node-backdrop {
-    background: linear-gradient(135deg, 
-      rgba(15, 23, 42, 0.1) 0%, 
-      rgba(30, 41, 59, 0.05) 50%, 
-      rgba(51, 65, 85, 0.1) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.1) 0%,
+      rgba(30, 41, 59, 0.05) 50%,
+      rgba(51, 65, 85, 0.1) 100%
+    );
   }
-  
+
   .node-label {
     color: #f1f5f9;
   }
-  
+
   .node-type,
   .node-description {
     color: #94a3b8;
   }
-  
+
   .progress-track {
     background: rgba(51, 65, 85, 0.8);
   }
-  
+
   .metric-value {
     color: #f1f5f9;
   }
-}</style>
+}
+</style>

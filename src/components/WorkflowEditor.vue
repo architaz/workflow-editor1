@@ -204,23 +204,6 @@ const loadWorkflow = () => {
     alert('Workflow loaded!')
   }
 }
-const exportWorkflow = () => {
-  const workflow = {
-    nodes: nodes.value,
-    edges: edges.value,
-    timestamp: new Date().toISOString()
-  }
-  
-  const blob = new Blob([JSON.stringify(workflow, null, 2)], {
-    type: 'application/json'
-  })
-  
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'workflow.json'
-  link.click()
-}
 </script>
 
 <style scoped>

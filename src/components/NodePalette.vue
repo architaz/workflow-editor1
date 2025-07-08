@@ -1,11 +1,11 @@
 <template>
-  <div class="node-palette">
+  <div class="node-palette h-full flex flex-col justify-between py-4">
     <div 
       v-for="node in nodeTypes" 
       :key="node.type"
       :draggable="true"
       @dragstart="onDragStart($event, node.type)"
-      class="node-item group relative p-4 mb-3 bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-xl cursor-move hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 hover:scale-105 hover:border-blue-300"
+      class="node-item flex-1 group relative p-4 mx-2 bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-xl cursor-move hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 hover:scale-105 hover:border-blue-300 flex items-center"
     >
       <div class="flex items-start space-x-3">
         <div class="flex-shrink-0">
@@ -94,9 +94,13 @@ export default {
 </script>
 
 <style scoped>
+.node-palette {
+  min-height: calc(100vh - 200px); /* Account for header space */
+}
 .node-item {
   position: relative;
   overflow: hidden;
+  min-height: 0;
 }
 
 .node-item::before {

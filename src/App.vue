@@ -2,34 +2,65 @@
   <div id="app" class="workflow-container">
     <div class="workflow-editor h-screen w-screen flex">
       <!-- Sidebar with nodes -->
-      <div class="sidebar w-72 bg-gradient-to-br from-slate-900 to-slate-800 p-6 border-r border-slate-700/50 shadow-xl">
-        <div class="mb-8">
-          <h3 class="text-xl font-bold text-white mb-2">Workflow Nodes</h3>
-          <p class="text-slate-400 text-sm">Drag and drop to build your workflow</p>
-        </div>
-        <NodePalette @node-drag="onNodeDrag" />
+<div class="sidebar transition-all duration-300 ease-in-out bg-gradient-to-br from-slate-900 to-slate-800 border-r border-slate-700/50 shadow-xl" 
+     :class="sidebarCollapsed ? 'w-16' : 'w-72'">
+  
+  <!-- Collapse toggle button -->
+  <button @click="toggleSidebar" 
+          class="absolute top-8 right-1 z-20 p-4 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors">
+    <svg class="w-6 h-6 transition-transform duration-200" 
+         :class="sidebarCollapsed ? 'rotate-180' : ''"
+         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+    </svg>
+  </button>
+  
+  <div class="h-full flex flex-col" :class="sidebarCollapsed ? 'hidden' : ''">
+  <div class="p-6 pb-4 flex-shrink-0">
+    <h3 class="text-xl font-bold text-white mb-2">Workflow Nodes</h3>
+    <p class="text-slate-400 text-sm">Drag and drop to build your workflow</p>
+  </div>
+  <div class="flex-1 px-6 pb-6">
+    <NodePalette @node-drag="onNodeDrag" />
+  </div>
+</div>
+  
+  <!-- Collapsed state mini icons -->
+  <div v-if="sidebarCollapsed" class="p-4 pt-16">
+    <div class="flex flex-col gap-3">
+      <div v-for="node in miniNodeTypes" :key="node.type"
+           :draggable="true"
+           @dragstart="onNodeDragMini($event, node.type)"
+           class="w-8 h-8 rounded-lg cursor-move hover:scale-110 transition-transform flex items-center justify-center text-white text-sm"
+           :class="node.bgClass"
+           :title="node.label">
+        {{ node.icon }}
       </div>
+    </div>
+  </div>
+</div>
 
       <!-- Main canvas area -->
-      <div class="canvas-container flex-1 relative bg-gradient-to-br from-slate-50 to-slate-100">
-        <div class="controls absolute top-6 left-6 z-10 flex gap-3">
+      <div class="canvas-container flex-1 relative">
+        <!-- Controls moved to top center -->
+        <div class="controls absolute top-6 left-1/2 transform -translate-x-1/2 z-10 flex gap-5 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-xl shadow-lg border border-white/20">
           <button
             @click="runWorkflow"
-            class="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-medium flex items-center gap-2"
+            class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[120px]"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" />
             </svg>
             Run Flow
           </button>
           <button
             @click="clearCanvas"
-            class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-medium flex items-center gap-2"
+            class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-medium flex items-center justify-center gap-2 min-w-[140px]"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            Clear
+            Clear Canvas
           </button>
         </div>
 
@@ -192,6 +223,25 @@ export default {
         '🧹 Canvas cleared. Ready for new workflow...\n\nDrag nodes from the left panel to start building.'
     }
 
+    const sidebarCollapsed = ref(false)
+
+    const miniNodeTypes = [
+      { type: 'get-reviews', icon: '📄', bgClass: 'bg-blue-500 hover:bg-blue-600', label: 'Get Reviews' },
+      { type: 'k-means', icon: '🔍', bgClass: 'bg-green-500 hover:bg-green-600', label: 'Apply K-means' },
+      { type: 'clusters-to-list', icon: '📊', bgClass: 'bg-yellow-500 hover:bg-yellow-600', label: 'Clusters to List' },
+      { type: 'customer-insights', icon: '🧠', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Customer Insights' },
+      { type: 'insights-to-sheets', icon: '📈', bgClass: 'bg-red-500 hover:bg-red-600', label: 'Export to Sheets' }
+    ]
+
+    const toggleSidebar = () => {
+      sidebarCollapsed.value = !sidebarCollapsed.value
+    }
+
+    const onNodeDragMini = (event, nodeType) => {
+      event.dataTransfer.setData('application/node-type', nodeType)
+      event.dataTransfer.effectAllowed = 'move'
+    }
+
     return {
       nodes,
       edges,
@@ -203,6 +253,10 @@ export default {
       onConnect,
       runWorkflow,
       clearCanvas,
+      sidebarCollapsed,
+      miniNodeTypes,
+      toggleSidebar,
+      onNodeDragMini
     }
   },
 }
@@ -378,5 +432,18 @@ body {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.sidebar {
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar button {
+  z-index: 30;
+}
+
+.canvas-container {
+  position: relative;
 }
 </style>
