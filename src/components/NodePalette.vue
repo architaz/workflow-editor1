@@ -85,32 +85,39 @@ export default {
         icon: '🕷️'
       },
       {
-        type: 'slack-notifier',
-        label: 'Slack Notifier',
-        description: 'Send notifications to Slack channels',
-        iconClass: 'bg-gradient-to-br from-cyan-500 to-cyan-600',
-        icon: '💬'
-      },
-      {
-        type: 'http-api',
-        label: 'HTTP API',
-        description: 'Connect to external APIs and services',
-        iconClass: 'bg-gradient-to-br from-orange-500 to-orange-600',
+        type: 'http-request',
+        label: 'HTTP Request',
+        description: 'Make API calls to external services',
+        iconClass: 'bg-gradient-to-br from-indigo-500 to-indigo-600',
         icon: '🌐'
       },
       {
-        type: 'email-sender',
-        label: 'Email Sender',
-        description: 'Send reports and notifications via email',
-        iconClass: 'bg-gradient-to-br from-pink-500 to-pink-600',
+        type: 'google-sheets',
+        label: 'Google Sheets',
+        description: 'Read/write data to spreadsheets',
+        iconClass: 'bg-gradient-to-br from-green-500 to-green-600',
+        icon: '📊'
+          },
+      {
+        type: 'slack',
+        label: 'Slack',
+        description: 'Send notifications to Slack channels',
+        iconClass: 'bg-gradient-to-br from-purple-500 to-purple-600',
+        icon: '💬'
+      },
+      {
+        type: 'email',
+        label: 'Email',
+        description: 'Send emails with results',
+        iconClass: 'bg-gradient-to-br from-blue-500 to-blue-600',
         icon: '✉️'
       },
       {
-        type: 'data-validator',
-        label: 'Data Validator',
-        description: 'Clean and validate input data quality',
-        iconClass: 'bg-gradient-to-br from-teal-500 to-teal-600',
-        icon: '✅'
+        type: 'webhook',
+        label: 'Webhook',
+        description: 'Receive data from external services',
+        iconClass: 'bg-gradient-to-br from-red-500 to-red-600',
+        icon: '🪝'
       }
     ]
     

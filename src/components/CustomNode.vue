@@ -100,31 +100,31 @@ export default {
           text: '📋',
           glow: 'shadow-red-500/50',
         },
-        'web-scraper': {
+        'http-request': {
           class: 'from-indigo-500 via-indigo-600 to-purple-600',
-          text: '🕷️',
+          text: '🌐',
           glow: 'shadow-indigo-500/50',
         },
-        'slack-notifier': {
-          class: 'from-cyan-500 via-cyan-600 to-blue-600',
+        'google-sheets': {
+          class: 'from-green-500 via-green-600 to-teal-600',
+          text: '📊',
+          glow: 'shadow-green-500/50',
+        },
+        'slack': {
+          class: 'from-purple-500 via-violet-600 to-indigo-600',
           text: '💬',
-          glow: 'shadow-cyan-500/50',
+          glow: 'shadow-purple-500/50',
         },
-        'http-api': {
-          class: 'from-orange-500 via-orange-600 to-red-600',
-          text: '🌐',
-          glow: 'shadow-orange-500/50',
-        },
-        'email-sender': {
-          class: 'from-pink-500 via-pink-600 to-rose-600',
+        'email': {
+          class: 'from-blue-500 via-blue-600 to-indigo-600',
           text: '✉️',
-          glow: 'shadow-pink-500/50',
+          glow: 'shadow-blue-500/50',
         },
-        'data-validator': {
-          class: 'from-teal-500 via-teal-600 to-cyan-600',
-          text: '✅',
-          glow: 'shadow-teal-500/50',
-        },
+        'webhook': {
+          class: 'from-red-500 via-red-600 to-pink-600',
+          text: '🪝',
+          glow: 'shadow-red-500/50',
+        }
       }
       return (
         icons[nodeType] || {
@@ -142,11 +142,11 @@ export default {
         'clusters-to-list': 'Transformer',
         'customer-insights': 'AI Agent',
         'insights-to-sheets': 'Export',
-        'web-scraper': 'Data Extractor',
-        'slack-notifier': 'Notification',
-        'http-api': 'API Connector',
-        'email-sender': 'Communication',
-        'data-validator': 'Data Quality',
+        'http-request': 'API Connector',
+        'google-sheets': 'Spreadsheet',
+        'slack': 'Notification',
+        'email': 'Communication',
+        'webhook': 'Data Receiver',
       }
       return labels[nodeType] || 'Processing Node'
     }

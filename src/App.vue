@@ -180,6 +180,11 @@ export default {
         'clusters-to-list': 'Clusters to List',
         'customer-insights': 'Customer Insights Agent',
         'insights-to-sheets': 'Insights to GSheets',
+        'http-request': 'HTTP Request',
+        'google-sheets': 'Google Sheets',
+        'slack': 'Slack Notifier',
+        'email': 'Email Sender',
+        'webhook': 'Webhook Receiver',
       }
       return labels[nodeType] || nodeType
     }
@@ -212,6 +217,16 @@ export default {
           '🤖 Generated insights using AI agent\n  🏷️ Tags: "price-sensitive", "quality-focused", "service-oriented"',
         'insights-to-sheets':
           '📤 Data exported to Google Sheets\n  📄 File: customer-insights-2024.xlsx',
+        'http-request': 
+          '✅ Made GET request to https://api.example.com\n  ⏱️ Response time: 320ms\n  📦 Received 1.2KB of data',
+        'google-sheets': 
+          '📊 Updated Google Sheet "Customer Insights"\n  ✏️ Wrote 45 rows of data\n  🔗 Sheet URL: https://docs.google.com/spreadsheets/...',
+        'slack': 
+          '💬 Sent message to #customer-insights channel\n  👥 Notified 15 team members\n  📝 Message: "New customer insights available!"',
+        'email': 
+          '✉️ Sent email to marketing@company.com\n  📧 Subject: "Weekly Customer Insights Report"\n  📎 Attached 1 file (report.pdf)',
+        'webhook': 
+          '🪝 Webhook listening at https://yourdomain.com/webhook\n  🔄 Last received data 2 minutes ago\n  📥 Processed 3 incoming requests'
       }
       return simulations[nodeType] || '✅ Execution completed'
     }
@@ -230,7 +245,12 @@ export default {
       { type: 'k-means', icon: '🔍', bgClass: 'bg-green-500 hover:bg-green-600', label: 'Apply K-means' },
       { type: 'clusters-to-list', icon: '📊', bgClass: 'bg-yellow-500 hover:bg-yellow-600', label: 'Clusters to List' },
       { type: 'customer-insights', icon: '🧠', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Customer Insights' },
-      { type: 'insights-to-sheets', icon: '📈', bgClass: 'bg-red-500 hover:bg-red-600', label: 'Export to Sheets' }
+      { type: 'insights-to-sheets', icon: '📈', bgClass: 'bg-red-500 hover:bg-red-600', label: 'Export to Sheets' },
+      { type: 'http-request', icon: '🌐', bgClass: 'bg-indigo-500 hover:bg-indigo-600', label: 'HTTP Request' },
+      { type: 'google-sheets', icon: '📊', bgClass: 'bg-green-500 hover:bg-green-600', label: 'Google Sheets' },
+      { type: 'slack', icon: '💬', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Slack' },
+      { type: 'email', icon: '✉️', bgClass: 'bg-blue-500 hover:bg-blue-600', label: 'Email' },
+      { type: 'webhook', icon: '🪝', bgClass: 'bg-red-500 hover:bg-red-600', label: 'Webhook' }
     ]
 
     const toggleSidebar = () => {
