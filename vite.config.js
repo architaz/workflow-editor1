@@ -15,4 +15,13 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  optimizeDeps: {
+    include: [
+      'axios',
+      'form-data',
+      'jsonwebtoken',
+      'googleapis',
+      'slack-web-api-client'
+    ]
+  }
 })

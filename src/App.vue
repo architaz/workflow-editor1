@@ -72,8 +72,20 @@
           @drop="onDrop"
           @dragover="onDragOver"
           @connect="onConnect"
+          @node-drag-stop="onNodeDragStop"
           :node-types="nodeTypes"
+          :nodes-draggable="!isExecuting"
+          :edges-updatable="!isExecuting"
         >
+        <template #node-custom="nodeProps">
+          <component
+            :is="nodeComponents[nodeProps.id]"
+            :ref="(el) => nodeRefs[nodeProps.id] = el"
+            :selected="nodeProps.selected"
+            :initial-config="nodeProps.data.config || {}"
+            @update:config="updateNodeConfig(nodeProps.id, $event)"
+          />
+        </template>
           <!-- Add controls -->
           <Controls />
           <!-- Add minimap -->
@@ -96,12 +108,17 @@
 </template>
 
 <script>
-import { ref, markRaw } from 'vue'
+import { ref, markRaw, onMounted, provide } from 'vue'
 import { VueFlow } from '@vue-flow/core'
 import { Controls } from '@vue-flow/controls'
 import { MiniMap } from '@vue-flow/minimap'
 import NodePalette from './components/NodePalette.vue'
 import CustomNode from './components/CustomNode.vue'
+import { getNodeConfig, getAllNodeTypes } from '@/utils/nodeRegistry'
+
+const nodeComponents = Object.fromEntries(
+  getAllNodeTypes().map(({ type, component }) => [type, { type, component: markRaw(component) }])
+)
 
 export default {
   name: 'App',
@@ -110,6 +127,7 @@ export default {
     Controls,
     MiniMap,
     NodePalette,
+    ...nodeComponents
   },
   setup() {
     const nodes = ref([])
@@ -117,14 +135,39 @@ export default {
     const executionOutput = ref(
       'Ready to run workflow...\n\nDrag nodes from the left panel to the canvas to start building your workflow.',
     )
+    const isExecuting = ref(false)
+    const nodeRefs = ref({})
+    const nodeComponents = ref({})
 
     // Register custom node types
     const nodeTypes = {
       custom: markRaw(CustomNode),
+      ...Object.fromEntries(
+        getAllNodeTypes().map(({ type, component }) => [type, markRaw(component)])
+      )
     }
 
     // Node counter for unique IDs
     let nodeId = 0
+
+    // Provide credentials to all nodes
+    provide('credentials', {
+      slack: { token: import.meta.env.VITE_SLACK_TOKEN },
+      google: { 
+        clientEmail: import.meta.env.VITE_GOOGLE_CLIENT_EMAIL,
+        privateKey: import.meta.env.VITE_GOOGLE_PRIVATE_KEY 
+      },
+      smtp: {
+        user: import.meta.env.VITE_SMTP_USER,
+        password: import.meta.env.VITE_SMTP_PASSWORD
+      }
+    })
+
+    const setNodeRef = (nodeId, el) => {
+      if (el) {
+        nodeRefs.value[nodeId] = el
+      }
+    }
 
     const onNodeDrag = (nodeType) => {
       console.log('Node drag started:', nodeType)
@@ -142,15 +185,22 @@ export default {
         y: event.clientY - reactFlowBounds.top - 25,
       }
 
+      const nodeConfig = getNodeConfig(nodeType)
+
       const newNode = {
         id: `${nodeType}-${nodeId++}`,
         type: 'custom',
         position,
         data: {
           label: getNodeLabel(nodeType),
-          nodeType: nodeType,
+          nodeType,
+          config: { ...nodeConfig.defaults },
+          description: nodeConfig.description
         },
       }
+
+      // Store the component type for dynamic rendering
+      nodeComponents.value[newNode.id] = { type: nodeType }
 
       nodes.value = [...nodes.value, newNode]
       console.log('Node added:', newNode)
@@ -180,13 +230,41 @@ export default {
         'clusters-to-list': 'Clusters to List',
         'customer-insights': 'Customer Insights Agent',
         'insights-to-sheets': 'Insights to GSheets',
-        'http-request': 'HTTP Request',
-        'google-sheets': 'Google Sheets',
-        'slack': 'Slack Notifier',
-        'email': 'Email Sender',
-        'webhook': 'Webhook Receiver',
+        // 'http-request': 'HTTP Request',
+        // 'google-sheets': 'Google Sheets',
+        // 'slack': 'Slack Notifier',
+        // 'email': 'Email Sender',
+        // 'webhook': 'Webhook Receiver',
       }
       return labels[nodeType] || nodeType
+    }
+
+     const updateNodeConfig = (nodeId, config) => {
+      nodes.value = nodes.value.map(node => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              config
+            }
+          }
+        }
+        return node
+      })
+    }
+
+    const handleNodeExecute = async (nodeId) => {
+      if (!nodeRefs.value[nodeId]) return
+      
+      try {
+        const result = await nodeRefs.value[nodeId].execute()
+        executionOutput.value += `Node ${nodeId} executed successfully\n`
+        return result
+      } catch (error) {
+        executionOutput.value += `Error executing node ${nodeId}: ${error.message}\n`
+        throw error
+      }
     }
 
     const runWorkflow = () => {
@@ -195,6 +273,7 @@ export default {
         return
       }
 
+      isExecuting.value = true
       executionOutput.value = '🚀 Starting workflow execution...\n\n'
 
       nodes.value.forEach((node, index) => {
@@ -217,17 +296,18 @@ export default {
           '🤖 Generated insights using AI agent\n  🏷️ Tags: "price-sensitive", "quality-focused", "service-oriented"',
         'insights-to-sheets':
           '📤 Data exported to Google Sheets\n  📄 File: customer-insights-2024.xlsx',
-        'http-request': 
-          '✅ Made GET request to https://api.example.com\n  ⏱️ Response time: 320ms\n  📦 Received 1.2KB of data',
-        'google-sheets': 
-          '📊 Updated Google Sheet "Customer Insights"\n  ✏️ Wrote 45 rows of data\n  🔗 Sheet URL: https://docs.google.com/spreadsheets/...',
-        'slack': 
-          '💬 Sent message to #customer-insights channel\n  👥 Notified 15 team members\n  📝 Message: "New customer insights available!"',
-        'email': 
-          '✉️ Sent email to marketing@company.com\n  📧 Subject: "Weekly Customer Insights Report"\n  📎 Attached 1 file (report.pdf)',
-        'webhook': 
-          '🪝 Webhook listening at https://yourdomain.com/webhook\n  🔄 Last received data 2 minutes ago\n  📥 Processed 3 incoming requests'
+        // 'http-request': 
+        //   '✅ Made GET request to https://api.example.com\n  ⏱️ Response time: 320ms\n  📦 Received 1.2KB of data',
+        // 'google-sheets': 
+        //   '📊 Updated Google Sheet "Customer Insights"\n  ✏️ Wrote 45 rows of data\n  🔗 Sheet URL: https://docs.google.com/spreadsheets/...',
+        // 'slack': 
+        //   '💬 Sent message to #customer-insights channel\n  👥 Notified 15 team members\n  📝 Message: "New customer insights available!"',
+        // 'email': 
+        //   '✉️ Sent email to marketing@company.com\n  📧 Subject: "Weekly Customer Insights Report"\n  📎 Attached 1 file (report.pdf)',
+        // 'webhook': 
+        //   '🪝 Webhook listening at https://yourdomain.com/webhook\n  🔄 Last received data 2 minutes ago\n  📥 Processed 3 incoming requests'
       }
+      isExecuting.value = false
       return simulations[nodeType] || '✅ Execution completed'
     }
 
@@ -246,11 +326,11 @@ export default {
       { type: 'clusters-to-list', icon: '📊', bgClass: 'bg-yellow-500 hover:bg-yellow-600', label: 'Clusters to List' },
       { type: 'customer-insights', icon: '🧠', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Customer Insights' },
       { type: 'insights-to-sheets', icon: '📈', bgClass: 'bg-red-500 hover:bg-red-600', label: 'Export to Sheets' },
-      { type: 'http-request', icon: '🌐', bgClass: 'bg-indigo-500 hover:bg-indigo-600', label: 'HTTP Request' },
-      { type: 'google-sheets', icon: '📊', bgClass: 'bg-green-500 hover:bg-green-600', label: 'Google Sheets' },
-      { type: 'slack', icon: '💬', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Slack' },
-      { type: 'email', icon: '✉️', bgClass: 'bg-blue-500 hover:bg-blue-600', label: 'Email' },
-      { type: 'webhook', icon: '🪝', bgClass: 'bg-red-500 hover:bg-red-600', label: 'Webhook' }
+      // { type: 'http-request', icon: '🌐', bgClass: 'bg-indigo-500 hover:bg-indigo-600', label: 'HTTP Request' },
+      // { type: 'google-sheets', icon: '📊', bgClass: 'bg-green-500 hover:bg-green-600', label: 'Google Sheets' },
+      // { type: 'slack', icon: '💬', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Slack' },
+      // { type: 'email', icon: '✉️', bgClass: 'bg-blue-500 hover:bg-blue-600', label: 'Email' },
+      // { type: 'webhook', icon: '🪝', bgClass: 'bg-red-500 hover:bg-red-600', label: 'Webhook' }
     ]
 
     const toggleSidebar = () => {
@@ -276,7 +356,15 @@ export default {
       sidebarCollapsed,
       miniNodeTypes,
       toggleSidebar,
-      onNodeDragMini
+      onNodeDragMini,
+      isExecuting,
+      nodeRefs,
+      nodeComponents,
+      setNodeRef,
+      updateNodeConfig,
+      handleNodeExecute,
+      onNodeDragStop,
+      onNodesInitialized
     }
   },
 }
