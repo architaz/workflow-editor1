@@ -190,6 +190,27 @@ export default {
       }, 3000)
     })
 
+    const execute = async () => {
+      const nodeType = props.data.nodeType
+      const nodeConfig = props.data.config
+  
+      try {
+     // Get node definition from registry
+        const { executeNode } = await import('@/utils/nodeRegistry')
+        const nodeInstance = {
+            nodeType,
+          parameters: nodeConfig
+        }
+        const result = await executeNode(nodeInstance)
+        return result
+      } catch (error) {
+        console.error('Node execution failed:', error)
+        throw error
+      }
+    }
+
+    defineExpose({ execute })
+
     return {
       Position,
       iconClass: `bg-gradient-to-br ${iconInfo.class}`,
@@ -202,6 +223,7 @@ export default {
       progressPercent,
       showProgress,
       simulateExecution,
+      execute
     }
   },
 }

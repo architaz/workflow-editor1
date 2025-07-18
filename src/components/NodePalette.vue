@@ -115,6 +115,7 @@ export default {
     ]
     
     const onDragStart = (event, nodeType) => {
+      console.log('Starting drag for node type:', nodeType)
       event.dataTransfer.setData('application/node-type', nodeType)
       event.dataTransfer.effectAllowed = 'move'
       emit('node-drag', nodeType)

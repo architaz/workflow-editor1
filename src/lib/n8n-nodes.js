@@ -2,11 +2,11 @@ import { n8nWrappers } from './n8n-wrapper.js';
 
 // Node path mapping for your n8n submodule
 const NODE_PATHS = {
-  'http-request': 'HttpRequest/HttpRequest.node.js',
-  'slack': 'Slack/Slack.node.js', 
-  'google-sheets': 'Google/Sheets/GoogleSheets.node.js',
-  'email': 'EmailSend/EmailSend.node.js',
-  'webhook': 'Webhook/Webhook.node.js'
+  'http-request': './n8n/packages/nodes-base/nodes/HttpRequest/HttpRequest.node.js',
+  'slack': './n8n/packages/nodes-base/nodes/Slack/Slack.node.js', 
+  'google-sheets': './n8n/packages/nodes-base/nodes/Google/Sheets/GoogleSheets.node.js',
+  'email-send': './n8n/packages/nodes-base/nodes/EmailSend/EmailSend.node.js',
+  'webhook': './n8n/packages/nodes-base/nodes/Webhook/Webhook.node.js'
 };
 
 // Fallback wrapper mapping

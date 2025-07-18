@@ -40,8 +40,10 @@
   </div>
 </div>
 
-      <!-- Main canvas area -->
+  <!-- Main canvas area -->
       <div class="canvas-container flex-1 relative">
+        <!-- @drop = "onDrop"
+        @dragover.prevent = "onDragOver"> -->
         <!-- Controls moved to top center -->
         <div class="controls absolute top-6 left-1/2 transform -translate-x-1/2 z-10 flex gap-5 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-xl shadow-lg border border-white/20">
           <button
@@ -77,18 +79,17 @@
           :nodes-draggable="!isExecuting"
           :edges-updatable="!isExecuting"
         >
-        <template #node-custom="nodeProps">
-          <component
-            :is="nodeComponents[nodeProps.id]"
-            :ref="(el) => nodeRefs[nodeProps.id] = el"
-            :selected="nodeProps.selected"
-            :initial-config="nodeProps.data.config || {}"
-            @update:config="updateNodeConfig(nodeProps.id, $event)"
-          />
-        </template>
-          <!-- Add controls -->
+          <template #node-custom="{ data, selected, id }">
+            <CustomNode
+              :ref="(el) => { if (el) nodeRefs[id] = el }"
+              :data="data"
+              :selected="selected"
+              :initial-config="data.config || {}"
+              @update:config="updateNodeConfig(id, $event)"
+            />
+          </template>
+          
           <Controls />
-          <!-- Add minimap -->
           <MiniMap />
         </VueFlow>
       </div>
@@ -129,11 +130,11 @@ export default {
     const nodes = ref([])
     const edges = ref([])
     const executionOutput = ref(
-      'Ready to run workflow...\n\nDrag nodes from the left panel to the canvas to start building your workflow.',
+      'Ready to run workflow...\n\nDrag nodes from the left panel to the canvas to start building your workflow.\n\n📊 Available Node Types:\n• Get Reviews - Fetch customer data\n• K-means - Apply clustering\n• Clusters to List - Transform data\n• Customer Insights - AI analysis\n• Export to Sheets - Save results\n• HTTP Request - API calls\n• Google Sheets - Spreadsheet ops\n• Slack - Send notifications\n• Email - Send messages\n• Webhook - Receive data',
     )
     const isExecuting = ref(false)
     const nodeRefs = ref({})
-    const nodeComponents = ref({})
+    // const nodeComponents = ref({})
 
     // Register custom node types
     const nodeTypes = {
@@ -162,15 +163,28 @@ export default {
 
     const onDrop = (event) => {
       event.preventDefault()
-
+      event.stopPropagation()
+      
+      console.log('Drop event triggered')
+      
       const nodeType = event.dataTransfer.getData('application/node-type')
-      if (!nodeType) return
-
-      const reactFlowBounds = event.currentTarget.getBoundingClientRect()
-      const position = {
-        x: event.clientX - reactFlowBounds.left - 75,
-        y: event.clientY - reactFlowBounds.top - 25,
+      console.log('Node type from drag:', nodeType)
+      
+      if (!nodeType) {
+        console.error('No node type found in drag data')
+        return
       }
+
+      // Get the Vue Flow bounds properly
+      const vueFlowElement = event.currentTarget.querySelector('.vue-flow')
+      const bounds = vueFlowElement ? vueFlowElement.getBoundingClientRect() : event.currentTarget.getBoundingClientRect()
+      
+      const position = {
+        x: event.clientX - bounds.left - 75,
+        y: event.clientY - bounds.top - 25,
+      }
+      
+      console.log('Drop position:', position)
 
       const nodeConfig = getNodeConfig(nodeType)
       if (!nodeConfig) {
@@ -190,15 +204,14 @@ export default {
         },
       }
 
-      // Store the component type for dynamic rendering
-      nodeComponents.value[newNode.id] = { type: nodeType }
-
+      console.log('Adding new node:', newNode)
       nodes.value = [...nodes.value, newNode]
-      console.log('Node added:', newNode)
+      console.log('Total nodes after add:', nodes.value.length)
     }
 
     const onDragOver = (event) => {
       event.preventDefault()
+      event.stopPropagation()
       event.dataTransfer.dropEffect = 'move'
     }
 
@@ -331,6 +344,8 @@ export default {
     }
 
     onMounted(() => {
+      console.log('Available node types:', nodeTypes)
+      console.log('CustomNode component:', CustomNode)
       checkN8nAvailability()
     })
 
@@ -346,16 +361,16 @@ export default {
           '🤖 Generated insights using AI agent\n  🏷️ Tags: "price-sensitive", "quality-focused", "service-oriented"',
         'insights-to-sheets':
           '📤 Data exported to Google Sheets\n  📄 File: customer-insights-2024.xlsx',
-        // 'http-request': 
-        //   '✅ Made GET request to https://api.example.com\n  ⏱️ Response time: 320ms\n  📦 Received 1.2KB of data',
-        // 'google-sheets': 
-        //   '📊 Updated Google Sheet "Customer Insights"\n  ✏️ Wrote 45 rows of data\n  🔗 Sheet URL: https://docs.google.com/spreadsheets/...',
-        // 'slack': 
-        //   '💬 Sent message to #customer-insights channel\n  👥 Notified 15 team members\n  📝 Message: "New customer insights available!"',
-        // 'email': 
-        //   '✉️ Sent email to marketing@company.com\n  📧 Subject: "Weekly Customer Insights Report"\n  📎 Attached 1 file (report.pdf)',
-        // 'webhook': 
-        //   '🪝 Webhook listening at https://yourdomain.com/webhook\n  🔄 Last received data 2 minutes ago\n  📥 Processed 3 incoming requests'
+        'http-request': 
+          '✅ Made GET request to API endpoint\n  ⏱️ Response time: 320ms\n  📦 Received 1.2KB of data\n  🔗 Status: 200 OK',
+        'google-sheets': 
+          '📊 Updated Google Sheet "Customer Data"\n  ✏️ Wrote 45 rows of insights data\n  🔗 Sheet: docs.google.com/   spreadsheets/...',
+        'slack': 
+          '💬 Sent message to #customer-insights channel\n  👥 Notified 15 team members\n  📝 Message: "New customer insights ready for review!"',
+        'email-send': 
+          '✉️ Sent email to marketing@company.com\n  📧 Subject: "Weekly Customer Insights Report"\n  📎 Attached insights   summary (PDF)',
+        'webhook': 
+          '🪝 Webhook endpoint active at /customer-data\n  🔄 Last received data 2 minutes ago\n  📥 Processed 3 incoming  requests today'
       }
       isExecuting.value = false
       return simulations[nodeType] || '✅ Execution completed'
@@ -364,8 +379,9 @@ export default {
     const clearCanvas = () => {
       nodes.value = []
       edges.value = []
+      nodeRefs.value = {}
       executionOutput.value =
-        '🧹 Canvas cleared. Ready for new workflow...\n\nDrag nodes from the left panel to start building.'
+        '🧹 Canvas cleared. Ready for new workflow...\n\nDrag nodes from the left panel to start building.\n\n💡 Pro tip: Connect nodes by dragging from output handles (bottom) to input handles (top)'
     }
 
     const sidebarCollapsed = ref(false)
@@ -419,7 +435,6 @@ export default {
         'http-request': {},
         'webhook': {}
       }
-      
       return credentialsMap[nodeType] || {}
     }
 
@@ -440,7 +455,7 @@ export default {
       onNodeDragMini,
       isExecuting,
       nodeRefs,
-      nodeComponents,
+      // nodeComponents,
       updateNodeConfig,
       handleNodeExecute,
       getCredentialsForNode,
@@ -489,6 +504,7 @@ body {
 
 .vue-flow-container {
   height: 100%;
+  width: 100%;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   background-image: 
     radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.15) 1px, transparent 0);
@@ -636,5 +652,10 @@ body {
 
 .canvas-container {
   position: relative;
+}
+/* Ensure Vue Flow is properly sized */
+.vue-flow {
+  width: 100% !important;
+  height: 100% !important;
 }
 </style>
