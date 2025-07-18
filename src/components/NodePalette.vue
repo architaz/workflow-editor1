@@ -78,13 +78,6 @@ export default {
         icon: '📈'
       },
       {
-        type: 'web-scraper',
-        label: 'Web Scraper',
-        description: 'Extract data from websites and reviews',
-        iconClass: 'bg-gradient-to-br from-indigo-500 to-indigo-600',
-        icon: '🕷️'
-      },
-      {
         type: 'http-request',
         label: 'HTTP Request',
         description: 'Make API calls to external services',
@@ -97,7 +90,7 @@ export default {
         description: 'Read/write data to spreadsheets',
         iconClass: 'bg-gradient-to-br from-green-500 to-green-600',
         icon: '📊'
-          },
+      },
       {
         type: 'slack',
         label: 'Slack',

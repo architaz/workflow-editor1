@@ -72,8 +72,20 @@
           @drop="onDrop"
           @dragover="onDragOver"
           @connect="onConnect"
+          @node-drag-stop="onNodeDragStop"
           :node-types="nodeTypes"
+          :nodes-draggable="!isExecuting"
+          :edges-updatable="!isExecuting"
         >
+        <template #node-custom="nodeProps">
+          <component
+            :is="nodeComponents[nodeProps.id]"
+            :ref="(el) => nodeRefs[nodeProps.id] = el"
+            :selected="nodeProps.selected"
+            :initial-config="nodeProps.data.config || {}"
+            @update:config="updateNodeConfig(nodeProps.id, $event)"
+          />
+        </template>
           <!-- Add controls -->
           <Controls />
           <!-- Add minimap -->
@@ -96,12 +108,14 @@
 </template>
 
 <script>
-import { ref, markRaw } from 'vue'
+import { ref, markRaw, onMounted, provide } from 'vue'
 import { VueFlow } from '@vue-flow/core'
 import { Controls } from '@vue-flow/controls'
 import { MiniMap } from '@vue-flow/minimap'
 import NodePalette from './components/NodePalette.vue'
 import CustomNode from './components/CustomNode.vue'
+import { getNodeConfig, getAllNodeTypes } from '@/utils/nodeRegistry'
+import { n8nNodes } from '@/lib/n8n-nodes.js'
 
 export default {
   name: 'App',
@@ -109,7 +123,7 @@ export default {
     VueFlow,
     Controls,
     MiniMap,
-    NodePalette,
+    NodePalette
   },
   setup() {
     const nodes = ref([])
@@ -117,6 +131,9 @@ export default {
     const executionOutput = ref(
       'Ready to run workflow...\n\nDrag nodes from the left panel to the canvas to start building your workflow.',
     )
+    const isExecuting = ref(false)
+    const nodeRefs = ref({})
+    const nodeComponents = ref({})
 
     // Register custom node types
     const nodeTypes = {
@@ -125,6 +142,19 @@ export default {
 
     // Node counter for unique IDs
     let nodeId = 0
+
+    // Provide credentials to all nodes
+    provide('credentials', {
+      slack: { token: import.meta.env.VITE_SLACK_TOKEN },
+      google: { 
+        clientEmail: import.meta.env.VITE_GOOGLE_CLIENT_EMAIL,
+        privateKey: import.meta.env.VITE_GOOGLE_PRIVATE_KEY 
+      },
+      smtp: {
+        user: import.meta.env.VITE_SMTP_USER,
+        password: import.meta.env.VITE_SMTP_PASSWORD
+      }
+    })
 
     const onNodeDrag = (nodeType) => {
       console.log('Node drag started:', nodeType)
@@ -142,15 +172,26 @@ export default {
         y: event.clientY - reactFlowBounds.top - 25,
       }
 
+      const nodeConfig = getNodeConfig(nodeType)
+      if (!nodeConfig) {
+        console.error('No config found for node type:', nodeType)
+        return
+      }
+
       const newNode = {
         id: `${nodeType}-${nodeId++}`,
         type: 'custom',
         position,
         data: {
           label: getNodeLabel(nodeType),
-          nodeType: nodeType,
+          nodeType,
+          config: { ...nodeConfig.defaults },
+          description: nodeConfig.description
         },
       }
+
+      // Store the component type for dynamic rendering
+      nodeComponents.value[newNode.id] = { type: nodeType }
 
       nodes.value = [...nodes.value, newNode]
       console.log('Node added:', newNode)
@@ -175,35 +216,123 @@ export default {
 
     const getNodeLabel = (nodeType) => {
       const labels = {
+        // Existing labels
         'get-reviews': 'Get Reviews',
         'k-means': 'Apply K-means Algorithm',
         'clusters-to-list': 'Clusters to List',
         'customer-insights': 'Customer Insights Agent',
         'insights-to-sheets': 'Insights to GSheets',
+        // n8n node labels
         'http-request': 'HTTP Request',
         'google-sheets': 'Google Sheets',
         'slack': 'Slack Notifier',
-        'email': 'Email Sender',
+        'email-send': 'Email Sender',
         'webhook': 'Webhook Receiver',
       }
       return labels[nodeType] || nodeType
     }
 
-    const runWorkflow = () => {
+     const updateNodeConfig = (nodeId, config) => {
+      nodes.value = nodes.value.map(node => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              config
+            }
+          }
+        }
+        return node
+      })
+    }
+
+    const handleNodeExecute = async (nodeId) => {
+      const node = nodes.value.find(n => n.id === nodeId)
+      if (!node) return
+      
+      const nodeType = node.data.nodeType
+      const nodeConfig = node.data.config
+      
+      try {
+        // Check if it's an n8n node
+        const n8nNodeTypes = ['http-request', 'google-sheets', 'slack', 'email-send', 'webhook']
+        
+        if (n8nNodeTypes.includes(nodeType)) {
+          // Execute real n8n node
+          const n8nNode = await n8nNodes.createNode(nodeType, {
+            parameters: nodeConfig,
+            credentials: getCredentialsForNode(nodeType)
+          })
+          
+          const result = await n8nNode.execute()
+          executionOutput.value += `✅ ${node.data.label} executed successfully\n`
+          executionOutput.value += `📊 Result: ${JSON.stringify(result, null, 2)}\n\n`
+          return result
+        } else {
+          // Execute custom workflow node
+          if (nodeRefs.value[nodeId]) {
+            const result = await nodeRefs.value[nodeId].execute()
+            executionOutput.value += `✅ ${node.data.label} executed successfully\n\n`
+            return result
+          }
+        }
+      } catch (error) {
+        executionOutput.value += `❌ Error executing ${node.data.label}: ${error.message}\n\n`
+        throw error
+      }
+    }
+
+    const runWorkflow = async () => {
       if (nodes.value.length === 0) {
         executionOutput.value = 'No nodes to execute. Please add some nodes to the canvas first.'
         return
       }
 
+      isExecuting.value = true
       executionOutput.value = '🚀 Starting workflow execution...\n\n'
 
-      nodes.value.forEach((node, index) => {
-        setTimeout(() => {
-          const output = simulateNodeExecution(node.data.nodeType)
-          executionOutput.value += `${index + 1}. ${node.data.label}:\n${output}\n\n`
-        }, index * 1500)
-      })
+      try {
+        // Sort nodes by execution order (you might want to implement topological sort)
+        const sortedNodes = [...nodes.value]
+        
+        for (let i = 0; i < sortedNodes.length; i++) {
+          const node = sortedNodes[i]
+          executionOutput.value += `📋 Executing: ${node.data.label}\n`
+          
+          try {
+            await handleNodeExecute(node.id)
+            // Add delay between executions
+            if (i < sortedNodes.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, 1000))
+            }
+          } catch (error) {
+            executionOutput.value += `❌ Workflow stopped due to error in ${node.data.label}\n`
+            break
+          }
+        }
+        
+        executionOutput.value += '✅ Workflow execution completed!\n'
+      } catch (error) {
+        executionOutput.value += `❌ Workflow execution failed: ${error.message}\n`
+      } finally {
+        isExecuting.value = false
+      }
     }
+
+    const checkN8nAvailability = async () => {
+      try {
+        const availability = await n8nNodes.getAvailableNodes()
+        console.log('n8n nodes availability:', availability)
+        executionOutput.value += `\n\n🔍 n8n nodes status: ${JSON.stringify(availability, null, 2)}\n\n`
+      } catch (error) {
+        console.warn('Could not check n8n availability:', error)
+      }
+    }
+
+    onMounted(() => {
+      checkN8nAvailability()
+    })
 
     const simulateNodeExecution = (nodeType) => {
       const simulations = {
@@ -217,17 +346,18 @@ export default {
           '🤖 Generated insights using AI agent\n  🏷️ Tags: "price-sensitive", "quality-focused", "service-oriented"',
         'insights-to-sheets':
           '📤 Data exported to Google Sheets\n  📄 File: customer-insights-2024.xlsx',
-        'http-request': 
-          '✅ Made GET request to https://api.example.com\n  ⏱️ Response time: 320ms\n  📦 Received 1.2KB of data',
-        'google-sheets': 
-          '📊 Updated Google Sheet "Customer Insights"\n  ✏️ Wrote 45 rows of data\n  🔗 Sheet URL: https://docs.google.com/spreadsheets/...',
-        'slack': 
-          '💬 Sent message to #customer-insights channel\n  👥 Notified 15 team members\n  📝 Message: "New customer insights available!"',
-        'email': 
-          '✉️ Sent email to marketing@company.com\n  📧 Subject: "Weekly Customer Insights Report"\n  📎 Attached 1 file (report.pdf)',
-        'webhook': 
-          '🪝 Webhook listening at https://yourdomain.com/webhook\n  🔄 Last received data 2 minutes ago\n  📥 Processed 3 incoming requests'
+        // 'http-request': 
+        //   '✅ Made GET request to https://api.example.com\n  ⏱️ Response time: 320ms\n  📦 Received 1.2KB of data',
+        // 'google-sheets': 
+        //   '📊 Updated Google Sheet "Customer Insights"\n  ✏️ Wrote 45 rows of data\n  🔗 Sheet URL: https://docs.google.com/spreadsheets/...',
+        // 'slack': 
+        //   '💬 Sent message to #customer-insights channel\n  👥 Notified 15 team members\n  📝 Message: "New customer insights available!"',
+        // 'email': 
+        //   '✉️ Sent email to marketing@company.com\n  📧 Subject: "Weekly Customer Insights Report"\n  📎 Attached 1 file (report.pdf)',
+        // 'webhook': 
+        //   '🪝 Webhook listening at https://yourdomain.com/webhook\n  🔄 Last received data 2 minutes ago\n  📥 Processed 3 incoming requests'
       }
+      isExecuting.value = false
       return simulations[nodeType] || '✅ Execution completed'
     }
 
@@ -241,16 +371,18 @@ export default {
     const sidebarCollapsed = ref(false)
 
     const miniNodeTypes = [
+      // custom workflow nodes
       { type: 'get-reviews', icon: '📄', bgClass: 'bg-blue-500 hover:bg-blue-600', label: 'Get Reviews' },
       { type: 'k-means', icon: '🔍', bgClass: 'bg-green-500 hover:bg-green-600', label: 'Apply K-means' },
       { type: 'clusters-to-list', icon: '📊', bgClass: 'bg-yellow-500 hover:bg-yellow-600', label: 'Clusters to List' },
       { type: 'customer-insights', icon: '🧠', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Customer Insights' },
       { type: 'insights-to-sheets', icon: '📈', bgClass: 'bg-red-500 hover:bg-red-600', label: 'Export to Sheets' },
+      // n8n nodes
       { type: 'http-request', icon: '🌐', bgClass: 'bg-indigo-500 hover:bg-indigo-600', label: 'HTTP Request' },
-      { type: 'google-sheets', icon: '📊', bgClass: 'bg-green-500 hover:bg-green-600', label: 'Google Sheets' },
+      { type: 'google-sheets', icon: '📊', bgClass: 'bg-emerald-500 hover:bg-emerald-600', label: 'Google Sheets' },
       { type: 'slack', icon: '💬', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Slack' },
-      { type: 'email', icon: '✉️', bgClass: 'bg-blue-500 hover:bg-blue-600', label: 'Email' },
-      { type: 'webhook', icon: '🪝', bgClass: 'bg-red-500 hover:bg-red-600', label: 'Webhook' }
+      { type: 'email-send', icon: '✉️', bgClass: 'bg-cyan-500 hover:bg-cyan-600', label: 'Email' },
+      { type: 'webhook', icon: '🪝', bgClass: 'bg-orange-500 hover:bg-orange-600', label: 'Webhook' }
     ]
 
     const toggleSidebar = () => {
@@ -260,6 +392,35 @@ export default {
     const onNodeDragMini = (event, nodeType) => {
       event.dataTransfer.setData('application/node-type', nodeType)
       event.dataTransfer.effectAllowed = 'move'
+    }
+
+    const onNodeDragStop = (event) => {
+      console.log('Node drag stopped:', event)
+    }
+
+    const onNodesInitialized = () => {
+      console.log('Nodes initialized')
+    }
+
+    const getCredentialsForNode = (nodeType) => {
+      const credentialsMap = {
+        'slack': { token: import.meta.env.VITE_SLACK_TOKEN },
+        'google-sheets': { 
+          clientEmail: import.meta.env.VITE_GOOGLE_CLIENT_EMAIL,
+          privateKey: import.meta.env.VITE_GOOGLE_PRIVATE_KEY,
+          accessToken: import.meta.env.VITE_GOOGLE_ACCESS_TOKEN
+        },
+        'email-send': {
+          user: import.meta.env.VITE_SMTP_USER,
+          password: import.meta.env.VITE_SMTP_PASSWORD,
+          host: import.meta.env.VITE_SMTP_HOST || 'smtp.gmail.com',
+          port: import.meta.env.VITE_SMTP_PORT || 587
+        },
+        'http-request': {},
+        'webhook': {}
+      }
+      
+      return credentialsMap[nodeType] || {}
     }
 
     return {
@@ -276,7 +437,17 @@ export default {
       sidebarCollapsed,
       miniNodeTypes,
       toggleSidebar,
-      onNodeDragMini
+      onNodeDragMini,
+      isExecuting,
+      nodeRefs,
+      nodeComponents,
+      updateNodeConfig,
+      handleNodeExecute,
+      getCredentialsForNode,
+      checkN8nAvailability,
+      onNodeDragStop,
+      onNodesInitialized,
+      simulateNodeExecution
     }
   },
 }
