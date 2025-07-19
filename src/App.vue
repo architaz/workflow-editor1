@@ -73,19 +73,20 @@
           class="vue-flow-container"
           @drop="onDrop"
           @dragover="onDragOver"
+          @dragleave="onDragLeave"
           @connect="onConnect"
           @node-drag-stop="onNodeDragStop"
           :node-types="nodeTypes"
           :nodes-draggable="!isExecuting"
           :edges-updatable="!isExecuting"
         >
-          <template #node-custom="{ data, selected, id }">
+          <template #node-custom="nodeProps">
             <CustomNode
-              :ref="(el) => { if (el) nodeRefs[id] = el }"
-              :data="data"
-              :selected="selected"
-              :initial-config="data.config || {}"
-              @update:config="updateNodeConfig(id, $event)"
+              :ref="(el) => { if (el) nodeRefs[nodeProps.id] = el }"
+              :data="nodeProps.data"
+              :selected="nodeProps.selected"
+              :initial-config="nodeProps.data.config || {}"
+              @update:config="updateNodeConfig(nodeProps.id, $event)"
             />
           </template>
           
@@ -140,6 +141,10 @@ export default {
     const nodeTypes = {
       custom: markRaw(CustomNode),
     }
+    const debugNodes = () => {
+      console.log('Current nodes:', nodes.value)
+      console.log('Node types:', nodeTypes.value)
+    }
 
     // Node counter for unique IDs
     let nodeId = 0
@@ -165,26 +170,32 @@ export default {
       event.preventDefault()
       event.stopPropagation()
       
-      console.log('Drop event triggered')
+      // console.log('Drop event triggered on:', event.target)
       
-      const nodeType = event.dataTransfer.getData('application/node-type')
-      console.log('Node type from drag:', nodeType)
+      const nodeType = event.dataTransfer.getData('application/node-type') || 
+                      event.dataTransfer.getData('text/plain')
+      
+      console.log('Dropping node type:', nodeType)
       
       if (!nodeType) {
         console.error('No node type found in drag data')
         return
       }
 
-      // Get the Vue Flow bounds properly
-      const vueFlowElement = event.currentTarget.querySelector('.vue-flow')
-      const bounds = vueFlowElement ? vueFlowElement.getBoundingClientRect() : event.currentTarget.getBoundingClientRect()
+      // Get the VueFlow instance bounds correctly
+      const vueFlowElement = event.currentTarget.querySelector('.vue-flow__pane')
+      const bounds = vueFlowElement ? 
+        vueFlowElement.getBoundingClientRect() : 
+        event.currentTarget.getBoundingClientRect()
+      
+      // const bounds = vueFlowElement.getBoundingClientRect()
       
       const position = {
-        x: event.clientX - bounds.left - 75,
-        y: event.clientY - bounds.top - 25,
+        x: event.clientX - bounds.left,
+        y: event.clientY - bounds.top,
       }
       
-      console.log('Drop position:', position)
+      console.log('Drag position:', position)
 
       const nodeConfig = getNodeConfig(nodeType)
       if (!nodeConfig) {
@@ -204,15 +215,22 @@ export default {
         },
       }
 
-      console.log('Adding new node:', newNode)
+      console.log('Creating new node:', newNode)
+      
       nodes.value = [...nodes.value, newNode]
-      console.log('Total nodes after add:', nodes.value.length)
+      console.log('Nodes array after add:', nodes.value.length)
     }
 
     const onDragOver = (event) => {
       event.preventDefault()
       event.stopPropagation()
       event.dataTransfer.dropEffect = 'move'
+      event.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.05)'
+    }
+
+    // Add drag leave handler
+    const onDragLeave = (event) => {
+      event.currentTarget.style.backgroundColor = ''
     }
 
     const onConnect = (params) => {
@@ -344,9 +362,10 @@ export default {
     }
 
     onMounted(() => {
-      console.log('Available node types:', nodeTypes)
+      console.log('Available node types:', nodeTypes.value)
       console.log('CustomNode component:', CustomNode)
       checkN8nAvailability()
+      debugNodes()
     })
 
     const simulateNodeExecution = (nodeType) => {
@@ -437,6 +456,8 @@ export default {
       }
       return credentialsMap[nodeType] || {}
     }
+
+    
 
     return {
       nodes,
@@ -657,5 +678,34 @@ body {
 .vue-flow {
   width: 100% !important;
   height: 100% !important;
+}
+.vue-flow__pane {
+  cursor: default;
+}
+:deep(.vue-flow__node-custom) {
+  background: white !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  min-width: 180px !important;
+  min-height: 80px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 1 !important;
+}
+
+/* Force visibility */
+.custom-node {
+  background: white !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  min-width: 180px !important;
+  min-height: 80px !important;
+  position: relative !important;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 </style>

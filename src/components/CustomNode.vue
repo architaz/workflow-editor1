@@ -88,7 +88,7 @@ export default {
         'clusters-to-list': {
           class: 'from-amber-500 via-yellow-600 to-orange-600',
           text: '📈',
-          glowL: 'shadow-yellow-500/50',
+          glow: 'shadow-yellow-500/50',
         },
         'customer-insights': {
           class: 'from-purple-500 via-violet-600 to-indigo-600',
@@ -193,12 +193,12 @@ export default {
     const execute = async () => {
       const nodeType = props.data.nodeType
       const nodeConfig = props.data.config
-  
+
       try {
-     // Get node definition from registry
+        // Get node definition from registry
         const { executeNode } = await import('@/utils/nodeRegistry')
         const nodeInstance = {
-            nodeType,
+          nodeType,
           parameters: nodeConfig
         }
         const result = await executeNode(nodeInstance)
@@ -209,7 +209,11 @@ export default {
       }
     }
 
-    defineExpose({ execute })
+    defineExpose({ 
+      execute,
+      nodeType: props.data.nodeType,
+      config: props.data.config 
+    })
 
     return {
       Position,
@@ -225,7 +229,7 @@ export default {
       simulateExecution,
       execute
     }
-  },
+  }
 }
 </script>
 

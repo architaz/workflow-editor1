@@ -1,6 +1,6 @@
 import { n8nWrappers } from '@/lib/n8n-wrapper.js';
 
-// Custom node definitions
+// Custom workflow node definitions (metadata only)
 const customNodes = {
   'get-reviews': {
     name: 'get-reviews',
@@ -15,8 +15,6 @@ const customNodes = {
       businessId: '',
       limit: 50
     },
-    inputs: ['main'],
-    outputs: ['main'],
     properties: [
       {
         displayName: 'Source',
@@ -46,27 +44,7 @@ const customNodes = {
         default: 50,
         description: 'Maximum number of reviews to fetch'
       }
-    ],
-    execute: async function(parameters) {
-      const { source, businessId, limit } = parameters;
-      
-      // Mock implementation - replace with actual API calls
-      const mockReviews = Array.from({ length: Math.min(limit, 10) }, (_, i) => ({
-        id: `review_${i + 1}`,
-        rating: Math.floor(Math.random() * 5) + 1,
-        text: `This is a sample review ${i + 1} from ${source}`,
-        author: `Customer ${i + 1}`,
-        date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-        source: source,
-        businessId: businessId
-      }));
-
-      return {
-        success: true,
-        data: mockReviews,
-        total: mockReviews.length
-      };
-    }
+    ]
   },
 
   'k-means': {
@@ -82,8 +60,6 @@ const customNodes = {
       features: ['rating', 'textLength'],
       maxIterations: 100
     },
-    inputs: ['main'],
-    outputs: ['main'],
     properties: [
       {
         displayName: 'Number of Clusters',
@@ -111,48 +87,7 @@ const customNodes = {
         default: 100,
         description: 'Maximum number of iterations'
       }
-    ],
-    execute: async function(parameters, inputData) {
-      const { clusters, features, maxIterations } = parameters;
-      
-      if (!inputData || !inputData.length) {
-        throw new Error('No input data provided for clustering');
-      }
-
-      // Simple k-means implementation
-      const data = inputData.map(item => {
-        const point = {};
-        features.forEach(feature => {
-          switch (feature) {
-            case 'rating':
-              point[feature] = item.rating || 0;
-              break;
-            case 'textLength':
-              point[feature] = (item.text || '').length;
-              break;
-            case 'sentiment':
-              point[feature] = Math.random() * 2 - 1; // Mock sentiment
-              break;
-          }
-        });
-        return { ...item, features: point };
-      });
-
-      // Mock clustering result
-      const clusteredData = data.map((item, index) => ({
-        ...item,
-        cluster: index % clusters,
-        distance: Math.random()
-      }));
-
-      return {
-        success: true,
-        data: clusteredData,
-        clusters: clusters,
-        features: features,
-        iterations: Math.floor(Math.random() * maxIterations) + 1
-      };
-    }
+    ]
   },
 
   'clusters-to-list': {
@@ -167,8 +102,6 @@ const customNodes = {
       groupBy: 'cluster',
       sortOrder: 'asc'
     },
-    inputs: ['main'],
-    outputs: ['main'],
     properties: [
       {
         displayName: 'Group By',
@@ -192,44 +125,7 @@ const customNodes = {
         ],
         default: 'asc'
       }
-    ],
-    execute: async function(parameters, inputData) {
-      const { groupBy, sortOrder } = parameters;
-      
-      if (!inputData || !inputData.length) {
-        throw new Error('No input data provided');
-      }
-
-      // Group data by specified field
-      const grouped = inputData.reduce((acc, item) => {
-        const key = item[groupBy] || 'unknown';
-        if (!acc[key]) {
-          acc[key] = [];
-        }
-        acc[key].push(item);
-        return acc;
-      }, {});
-
-      // Sort groups
-      const sortedGroups = Object.keys(grouped).sort((a, b) => {
-        const comparison = a.localeCompare(b);
-        return sortOrder === 'desc' ? -comparison : comparison;
-      });
-
-      const result = sortedGroups.map(key => ({
-        group: key,
-        items: grouped[key],
-        count: grouped[key].length,
-        avgRating: grouped[key].reduce((sum, item) => sum + (item.rating || 0), 0) / grouped[key].length
-      }));
-
-      return {
-        success: true,
-        data: result,
-        totalGroups: result.length,
-        groupBy: groupBy
-      };
-    }
+    ]
   },
 
   'customer-insights': {
@@ -244,8 +140,6 @@ const customNodes = {
       analysisType: ['sentiment', 'topics'],
       confidenceThreshold: 0.7
     },
-    inputs: ['main'],
-    outputs: ['main'],
     properties: [
       {
         displayName: 'Analysis Type',
@@ -272,78 +166,22 @@ const customNodes = {
         default: 0.7,
         description: 'Minimum confidence score for insights'
       }
-    ],
-    execute: async function(parameters, inputData) {
-      const { analysisType, confidenceThreshold } = parameters;
-      
-      if (!inputData || !inputData.length) {
-        throw new Error('No input data provided for analysis');
-      }
-
-      const insights = {};
-
-      // Mock AI analysis
-      if (analysisType.includes('sentiment')) {
-        insights.sentiment = {
-          overall: Math.random() * 2 - 1,
-          distribution: {
-            positive: Math.random() * 0.6 + 0.2,
-            neutral: Math.random() * 0.3 + 0.1,
-            negative: Math.random() * 0.3 + 0.1
-          }
-        };
-      }
-
-      if (analysisType.includes('topics')) {
-        insights.topics = [
-          { topic: 'Service Quality', weight: Math.random(), keywords: ['service', 'staff', 'helpful'] },
-          { topic: 'Product Quality', weight: Math.random(), keywords: ['product', 'quality', 'value'] },
-          { topic: 'Experience', weight: Math.random(), keywords: ['experience', 'recommend', 'overall'] }
-        ];
-      }
-
-      if (analysisType.includes('keywords')) {
-        insights.keywords = [
-          { word: 'excellent', frequency: Math.floor(Math.random() * 50) + 10, sentiment: 0.8 },
-          { word: 'good', frequency: Math.floor(Math.random() * 30) + 5, sentiment: 0.6 },
-          { word: 'average', frequency: Math.floor(Math.random() * 20) + 3, sentiment: 0.0 },
-          { word: 'poor', frequency: Math.floor(Math.random() * 15) + 1, sentiment: -0.7 }
-        ];
-      }
-
-      if (analysisType.includes('trends')) {
-        insights.trends = {
-          ratingTrend: Math.random() > 0.5 ? 'improving' : 'declining',
-          volumeTrend: Math.random() > 0.5 ? 'increasing' : 'decreasing',
-          seasonality: Math.random() > 0.5 ? 'seasonal' : 'consistent'
-        };
-      }
-
-      return {
-        success: true,
-        data: insights,
-        analysisType: analysisType,
-        confidence: Math.random() * (1 - confidenceThreshold) + confidenceThreshold,
-        processedItems: inputData.length
-      };
-    }
+    ]
   },
 
   'insights-to-sheets': {
     name: 'insights-to-sheets',
-    displayName: 'Insights to Sheets',
+    displayName: 'Export to Sheets',
     description: 'Export insights data to Google Sheets',
     group: ['export'],
     version: 1,
     defaults: {
-      name: 'Insights to Sheets',
+      name: 'Export to Sheets',
       color: '#d62728',
       sheetName: 'Customer Insights',
       includeSummary: true,
       format: 'detailed'
     },
-    inputs: ['main'],
-    outputs: ['main'],
     properties: [
       {
         displayName: 'Sheet Name',
@@ -370,48 +208,11 @@ const customNodes = {
         ],
         default: 'detailed'
       }
-    ],
-    execute: async function(parameters, inputData) {
-      const { sheetName, includeSummary, format } = parameters;
-      
-      if (!inputData) {
-        throw new Error('No input data provided for export');
-      }
-
-      // Mock sheet formatting
-      const sheetData = {
-        sheetName: sheetName,
-        format: format,
-        rows: [],
-        summary: includeSummary ? {
-          totalInsights: Object.keys(inputData).length,
-          generatedAt: new Date().toISOString(),
-          confidence: inputData.confidence || 0.8
-        } : null
-      };
-
-      // Convert insights to rows based on format
-      if (format === 'detailed' || format === 'summary') {
-        Object.entries(inputData).forEach(([key, value]) => {
-          if (typeof value === 'object' && value !== null) {
-            sheetData.rows.push([key, JSON.stringify(value, null, 2)]);
-          } else {
-            sheetData.rows.push([key, value]);
-          }
-        });
-      }
-
-      return {
-        success: true,
-        data: sheetData,
-        exportedRows: sheetData.rows.length,
-        sheetName: sheetName
-      };
-    }
+    ]
   }
 };
 
-// n8n node definitions using wrappers
+// n8n node definitions (metadata only)
 const n8nNodes = {
   'http-request': {
     name: 'http-request',
@@ -424,11 +225,10 @@ const n8nNodes = {
       color: '#4f46e5',
       url: '',
       method: 'GET',
-      headers: '{}',
-      body: '{}'
+      headers: {},
+      body: {},
+      timeout: 30000
     },
-    inputs: ['main'],
-    outputs: ['main'],
     properties: [
       {
         displayName: 'URL',
@@ -455,31 +255,24 @@ const n8nNodes = {
         displayName: 'Headers',
         name: 'headers',
         type: 'json',
-        default: '{}',
+        default: {},
         description: 'Request headers as JSON object'
       },
       {
         displayName: 'Body',
         name: 'body',
         type: 'json',
-        default: '{}',
+        default: {},
         description: 'Request body for POST/PUT requests'
+      },
+      {
+        displayName: 'Timeout (ms)',
+        name: 'timeout',
+        type: 'number',
+        default: 30000,
+        description: 'Request timeout in milliseconds'
       }
-    ],
-    execute: async function(parameters) {
-      try {
-        const wrapper = new n8nWrappers.HTTPRequestWrapper({
-          parameters: parameters
-        });
-        return await wrapper.execute();
-      } catch (error) {
-        // Fallback to mock implementation
-        return {
-          success: true,
-          data: { mockResponse: 'HTTP request would be made here', parameters }
-        };
-      }
-    }
+    ]
   },
 
   'google-sheets': {
@@ -493,10 +286,9 @@ const n8nNodes = {
       color: '#34a853',
       spreadsheetId: '',
       range: 'A1:Z1000',
-      operation: 'read'
+      operation: 'read',
+      values: []
     },
-    inputs: ['main'],
-    outputs: ['main'],
     properties: [
       {
         displayName: 'Spreadsheet ID',
@@ -511,7 +303,7 @@ const n8nNodes = {
         name: 'range',
         type: 'string',
         default: 'A1:Z1000',
-        description: 'Sheet range to read/write'
+        description: 'Sheet range to read/write (e.g., A1:C10)'
       },
       {
         displayName: 'Operation',
@@ -523,23 +315,15 @@ const n8nNodes = {
           { name: 'Update', value: 'update' }
         ],
         default: 'read'
+      },
+      {
+        displayName: 'Values',
+        name: 'values',
+        type: 'json',
+        default: [],
+        description: 'Data to write (for append/update operations)'
       }
-    ],
-    execute: async function(parameters, inputData, credentials) {
-      try {
-        const wrapper = new n8nWrappers.GoogleSheetsWrapper({
-          parameters: parameters,
-          credentials: credentials
-        });
-        return await wrapper.execute();
-      } catch (error) {
-        // Fallback to mock implementation
-        return {
-          success: true,
-          data: { mockResponse: 'Google Sheets operation would be performed here', parameters }
-        };
-      }
-    }
+    ]
   },
 
   'slack': {
@@ -555,15 +339,13 @@ const n8nNodes = {
       text: '',
       username: 'Workflow Bot'
     },
-    inputs: ['main'],
-    outputs: ['main'],
     properties: [
       {
         displayName: 'Channel',
         name: 'channel',
         type: 'string',
         default: '',
-        placeholder: '#general',
+        placeholder: '#general or @username',
         required: true
       },
       {
@@ -581,22 +363,7 @@ const n8nNodes = {
         default: 'Workflow Bot',
         description: 'Username to display as sender'
       }
-    ],
-    execute: async function(parameters, inputData, credentials) {
-      try {
-        const wrapper = new n8nWrappers.SlackWrapper({
-          parameters: parameters,
-          credentials: credentials
-        });
-        return await wrapper.execute();
-      } catch (error) {
-        // Fallback to mock implementation
-        return {
-          success: true,
-          data: { mockResponse: 'Slack message would be sent here', parameters }
-        };
-      }
-    }
+    ]
   },
 
   'email-send': {
@@ -611,10 +378,10 @@ const n8nNodes = {
       to: '',
       subject: '',
       body: '',
-      from: ''
+      from: '',
+      cc: '',
+      bcc: ''
     },
-    inputs: ['main'],
-    outputs: ['main'],
     properties: [
       {
         displayName: 'To',
@@ -646,23 +413,22 @@ const n8nNodes = {
         type: 'string',
         default: '',
         placeholder: 'sender@example.com'
+      },
+      {
+        displayName: 'CC',
+        name: 'cc',
+        type: 'string',
+        default: '',
+        placeholder: 'cc@example.com'
+      },
+      {
+        displayName: 'BCC',
+        name: 'bcc',
+        type: 'string',
+        default: '',
+        placeholder: 'bcc@example.com'
       }
-    ],
-    execute: async function(parameters, inputData, credentials) {
-      try {
-        const wrapper = new n8nWrappers.EmailSendWrapper({
-          parameters: parameters,
-          credentials: credentials
-        });
-        return await wrapper.execute();
-      } catch (error) {
-        // Fallback to mock implementation
-        return {
-          success: true,
-          data: { mockResponse: 'Email would be sent here', parameters }
-        };
-      }
-    }
+    ]
   },
 
   'webhook': {
@@ -678,8 +444,6 @@ const n8nNodes = {
       httpMethod: 'POST',
       responseData: '{"status": "received"}'
     },
-    inputs: [],
-    outputs: ['main'],
     properties: [
       {
         displayName: 'Webhook Path',
@@ -708,21 +472,7 @@ const n8nNodes = {
         default: '{"status": "received"}',
         description: 'Data to return in webhook response'
       }
-    ],
-    execute: async function(parameters) {
-      try {
-        const wrapper = new n8nWrappers.WebhookWrapper({
-          parameters: parameters
-        });
-        return await wrapper.execute();
-      } catch (error) {
-        // Fallback to mock implementation
-        return {
-          success: true,
-          data: { mockResponse: 'Webhook would be set up here', parameters }
-        };
-      }
-    }
+    ]
   }
 };
 
@@ -770,31 +520,137 @@ export function createNodeInstance(nodeType, initialData = {}) {
     nodeType: nodeType,
     definition: nodeDefinition,
     properties: nodeDefinition.properties || [],
-    parameters: {},
+    parameters: { ...nodeDefinition.defaults },
     credentials: {},
     ...initialData
   };
 }
 
-export function executeNode(nodeInstance, inputData = null, credentials = {}) {
-  const nodeDefinition = nodeRegistry[nodeInstance.nodeType];
-  if (!nodeDefinition || !nodeDefinition.execute) {
-    throw new Error(`Node '${nodeInstance.nodeType}' cannot be executed`);
+// Simplified execution - delegates to either custom logic or n8n wrappers
+export async function executeNode(nodeInstance, inputData = null, credentials = {}) {
+  const nodeType = nodeInstance.nodeType;
+  const parameters = nodeInstance.parameters || {};
+  
+  // n8n nodes - use wrappers
+  const n8nNodeTypes = ['http-request', 'google-sheets', 'slack', 'email-send', 'webhook'];
+  
+  if (n8nNodeTypes.includes(nodeType)) {
+    try {
+      const wrapperMap = {
+        'http-request': n8nWrappers.HTTPRequestWrapper,
+        'google-sheets': n8nWrappers.GoogleSheetsWrapper,
+        'slack': n8nWrappers.SlackWrapper,
+        'email-send': n8nWrappers.EmailSendWrapper,
+        'webhook': n8nWrappers.WebhookWrapper
+      };
+      
+      const WrapperClass = wrapperMap[nodeType];
+      if (!WrapperClass) {
+        throw new Error(`No wrapper found for ${nodeType}`);
+      }
+      
+      const wrapper = new WrapperClass({
+        parameters,
+        credentials
+      });
+      
+      return await wrapper.execute();
+    } catch (error) {
+      console.error(`Error executing ${nodeType}:`, error);
+      // Return mock result on error
+      return {
+        success: false,
+        error: error.message,
+        mockResult: `${nodeType} would execute with parameters: ${JSON.stringify(parameters)}`
+      };
+    }
   }
-
-  return nodeDefinition.execute(
-    nodeInstance.parameters || {},
-    inputData,
-    credentials
-  );
+  
+  // Custom nodes - mock execution for now
+  return executeCustomNode(nodeType, parameters, inputData);
 }
 
-// Missing function that App.vue needs
+// Mock execution for custom workflow nodes
+function executeCustomNode(nodeType, parameters, inputData) {
+  const mockResults = {
+    'get-reviews': {
+      success: true,
+      data: Array.from({ length: parameters.limit || 10 }, (_, i) => ({
+        id: `review_${i + 1}`,
+        rating: Math.floor(Math.random() * 5) + 1,
+        text: `Sample review ${i + 1} from ${parameters.source || 'google'}`,
+        author: `Customer ${i + 1}`,
+        date: new Date().toISOString(),
+        source: parameters.source || 'google'
+      })),
+      total: parameters.limit || 10
+    },
+    
+    'k-means': {
+      success: true,
+      data: inputData?.map((item, index) => ({
+        ...item,
+        cluster: index % (parameters.clusters || 3),
+        distance: Math.random()
+      })) || [],
+      clusters: parameters.clusters || 3,
+      iterations: Math.floor(Math.random() * (parameters.maxIterations || 100))
+    },
+    
+    'clusters-to-list': {
+      success: true,
+      data: inputData ? Object.values(
+        inputData.reduce((acc, item) => {
+          const key = item[parameters.groupBy] || 'unknown';
+          if (!acc[key]) acc[key] = { group: key, items: [], count: 0 };
+          acc[key].items.push(item);
+          acc[key].count++;
+          return acc;
+        }, {})
+      ) : [],
+      groupBy: parameters.groupBy || 'cluster'
+    },
+    
+    'customer-insights': {
+      success: true,
+      data: {
+        sentiment: { overall: Math.random() * 2 - 1 },
+        topics: ['Service Quality', 'Product Quality', 'Experience'],
+        keywords: ['excellent', 'good', 'average', 'poor'],
+        confidence: parameters.confidenceThreshold || 0.7
+      },
+      processedItems: inputData?.length || 0
+    },
+    
+    'insights-to-sheets': {
+      success: true,
+      data: {
+        sheetName: parameters.sheetName || 'Customer Insights',
+        rowsExported: inputData ? Object.keys(inputData).length : 0,
+        format: parameters.format || 'detailed'
+      },
+      exportedAt: new Date().toISOString()
+    }
+  };
+  
+  return mockResults[nodeType] || {
+    success: true,
+    message: `Mock execution of ${nodeType}`,
+    parameters
+  };
+}
+
+// Main function that App.vue uses
 export function getNodeConfig(nodeType) {
   const nodeDefinition = nodeRegistry[nodeType];
   if (!nodeDefinition) {
     console.error(`Node type '${nodeType}' not found in registry`);
-    return null;
+    return {
+      displayName: nodeType,
+      description: 'Unknown node type',
+      defaults: { name: nodeType },
+      properties: []
+    };
   }
 
   return {
@@ -802,9 +658,9 @@ export function getNodeConfig(nodeType) {
     description: nodeDefinition.description,
     defaults: nodeDefinition.defaults,
     properties: nodeDefinition.properties || [],
-    inputs: nodeDefinition.inputs || [],
-    outputs: nodeDefinition.outputs || [],
-    execute: nodeDefinition.execute
+    group: nodeDefinition.group || [],
+    version: nodeDefinition.version || 1
   };
 }
+
 export default nodeRegistry;
