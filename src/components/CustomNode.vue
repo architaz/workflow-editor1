@@ -184,7 +184,7 @@ onMounted(() => {
     if (Math.random() > 0.2) {
       simulateExecution()
     }
-  }, 3000)
+  }, 1600)
 })
 
 const execute = async () => {
