@@ -37,7 +37,7 @@ export const nodeLoader = {
 
       for (const path of possiblePaths) {
         try {
-          const nodeModule = await import(path);
+          const nodeModule = await import(/* @vite-ignore */ path);
           console.log(`✓ Loaded real n8n node: ${nodeType} from ${path}`);
           return nodeModule.default || nodeModule;
         } catch (err) {

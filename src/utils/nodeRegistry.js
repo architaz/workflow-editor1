@@ -536,6 +536,7 @@ export async function executeNode(nodeInstance, inputData = null, credentials = 
   
   if (n8nNodeTypes.includes(nodeType)) {
     try {
+      // const { n8nWrappers } = await import('@/lib/n8n-wrapper.js')
       const wrapperMap = {
         'http-request': n8nWrappers.HTTPRequestWrapper,
         'google-sheets': n8nWrappers.GoogleSheetsWrapper,
@@ -664,3 +665,4 @@ export function getNodeConfig(nodeType) {
 }
 
 export default nodeRegistry;
+// export { executeNode }

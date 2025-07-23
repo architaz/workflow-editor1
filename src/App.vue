@@ -109,7 +109,7 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ref, markRaw, onMounted, provide } from 'vue'
 import { VueFlow } from '@vue-flow/core'
 import { Controls } from '@vue-flow/controls'
@@ -117,375 +117,356 @@ import { MiniMap } from '@vue-flow/minimap'
 import NodePalette from './components/NodePalette.vue'
 import CustomNode from './components/CustomNode.vue'
 import { getNodeConfig, getAllNodeTypes } from '@/utils/nodeRegistry'
-import { n8nNodes } from '@/lib/n8n-nodes.js'
 
-export default {
-  name: 'App',
-  components: {
-    VueFlow,
-    Controls,
-    MiniMap,
-    NodePalette
+const nodes = ref([])
+const edges = ref([])
+const executionOutput = ref(
+  'Ready to run workflow...\n\nDrag nodes from the left panel to the canvas to start building your workflow.\n\n📊 Available Node Types:\n• Get Reviews - Fetch customer data\n• K-means - Apply clustering\n• Clusters to List - Transform data\n• Customer Insights - AI analysis\n• Export to Sheets - Save results\n• HTTP Request - API calls\n• Google Sheets - Spreadsheet ops\n• Slack - Send notifications\n• Email - Send messages\n• Webhook - Receive data',
+)
+const isExecuting = ref(false)
+const nodeRefs = ref({})
+
+// Register custom node types
+const nodeTypes = {
+  custom: markRaw(CustomNode),
+}
+
+// Node counter for unique IDs
+let nodeId = 0
+
+// Provide credentials to all nodes
+provide('credentials', {
+  slack: { token: import.meta.env.VITE_SLACK_TOKEN },
+  google: { 
+    clientEmail: import.meta.env.VITE_GOOGLE_CLIENT_EMAIL,
+    privateKey: import.meta.env.VITE_GOOGLE_PRIVATE_KEY 
   },
-  setup() {
-    const nodes = ref([])
-    const edges = ref([])
-    const executionOutput = ref(
-      'Ready to run workflow...\n\nDrag nodes from the left panel to the canvas to start building your workflow.\n\n📊 Available Node Types:\n• Get Reviews - Fetch customer data\n• K-means - Apply clustering\n• Clusters to List - Transform data\n• Customer Insights - AI analysis\n• Export to Sheets - Save results\n• HTTP Request - API calls\n• Google Sheets - Spreadsheet ops\n• Slack - Send notifications\n• Email - Send messages\n• Webhook - Receive data',
-    )
-    const isExecuting = ref(false)
-    const nodeRefs = ref({})
-    // const nodeComponents = ref({})
+  smtp: {
+    user: import.meta.env.VITE_SMTP_USER,
+    password: import.meta.env.VITE_SMTP_PASSWORD
+  }
+})
 
-    // Register custom node types
-    const nodeTypes = {
-      custom: markRaw(CustomNode),
-    }
-    const debugNodes = () => {
-      console.log('Current nodes:', nodes.value)
-      console.log('Node types:', nodeTypes.value)
-    }
+const onNodeDrag = (nodeType) => {
+  console.log('Node drag started:', nodeType)
+}
 
-    // Node counter for unique IDs
-    let nodeId = 0
+const onDrop = (event) => {
+  event.preventDefault()
+  event.stopPropagation()
+  
+  const nodeType = event.dataTransfer.getData('application/node-type') || 
+                  event.dataTransfer.getData('text/plain')
+  
+  console.log('Dropping node type:', nodeType)
+  
+  if (!nodeType) {
+    console.error('No node type found in drag data')
+    return
+  }
 
-    // Provide credentials to all nodes
-    provide('credentials', {
-      slack: { token: import.meta.env.VITE_SLACK_TOKEN },
-      google: { 
-        clientEmail: import.meta.env.VITE_GOOGLE_CLIENT_EMAIL,
-        privateKey: import.meta.env.VITE_GOOGLE_PRIVATE_KEY 
-      },
-      smtp: {
-        user: import.meta.env.VITE_SMTP_USER,
-        password: import.meta.env.VITE_SMTP_PASSWORD
-      }
-    })
+  // Get the VueFlow instance bounds correctly
+  const vueFlowElement = event.currentTarget.querySelector('.vue-flow__pane')
+  const bounds = vueFlowElement ? 
+    vueFlowElement.getBoundingClientRect() : 
+    event.currentTarget.getBoundingClientRect()
+  
+  const position = {
+    x: event.clientX - bounds.left,
+    y: event.clientY - bounds.top,
+  }
+  
+  console.log('Drag position:', position)
 
-    const onNodeDrag = (nodeType) => {
-      console.log('Node drag started:', nodeType)
-    }
+  const nodeConfig = getNodeConfig(nodeType)
+  if (!nodeConfig) {
+    console.error('No config found for node type:', nodeType)
+    return
+  }
 
-    const onDrop = (event) => {
-      event.preventDefault()
-      event.stopPropagation()
-      
-      // console.log('Drop event triggered on:', event.target)
-      
-      const nodeType = event.dataTransfer.getData('application/node-type') || 
-                      event.dataTransfer.getData('text/plain')
-      
-      console.log('Dropping node type:', nodeType)
-      
-      if (!nodeType) {
-        console.error('No node type found in drag data')
-        return
-      }
+  const newNode = {
+    id: `${nodeType}-${nodeId++}`,
+    type: 'custom',
+    position,
+    data: {
+      label: getNodeLabel(nodeType),
+      nodeType,
+      config: { ...nodeConfig.defaults },
+      description: nodeConfig.description
+    },
+  }
 
-      // Get the VueFlow instance bounds correctly
-      const vueFlowElement = event.currentTarget.querySelector('.vue-flow__pane')
-      const bounds = vueFlowElement ? 
-        vueFlowElement.getBoundingClientRect() : 
-        event.currentTarget.getBoundingClientRect()
-      
-      // const bounds = vueFlowElement.getBoundingClientRect()
-      
-      const position = {
-        x: event.clientX - bounds.left,
-        y: event.clientY - bounds.top,
-      }
-      
-      console.log('Drag position:', position)
+  console.log('Creating new node:', newNode)
+  
+  nodes.value = [...nodes.value, newNode]
+  console.log('Nodes array after add:', nodes.value.length)
+  
+  // Debug nodes
+  debugNodes()
+}
 
-      const nodeConfig = getNodeConfig(nodeType)
-      if (!nodeConfig) {
-        console.error('No config found for node type:', nodeType)
-        return
-      }
+const onDragOver = (event) => {
+  event.preventDefault()
+  event.stopPropagation()
+  event.dataTransfer.dropEffect = 'move'
+  event.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.05)'
+}
 
-      const newNode = {
-        id: `${nodeType}-${nodeId++}`,
-        type: 'custom',
-        position,
+const onDragLeave = (event) => {
+  event.currentTarget.style.backgroundColor = ''
+}
+
+const onConnect = (params) => {
+  const newEdge = {
+    id: `edge-${params.source}-${params.target}`,
+    source: params.source,
+    target: params.target,
+    type: 'smoothstep',
+    style: { stroke: '#3b82f6', strokeWidth: 2 },
+  }
+  edges.value = [...edges.value, newEdge]
+  console.log('Edge connected:', newEdge)
+}
+
+const getNodeLabel = (nodeType) => {
+  const labels = {
+    'get-reviews': 'Get Reviews',
+    'k-means': 'Apply K-means Algorithm',
+    'clusters-to-list': 'Clusters to List',
+    'customer-insights': 'Customer Insights Agent',
+    'insights-to-sheets': 'Insights to GSheets',
+    'http-request': 'HTTP Request',
+    'google-sheets': 'Google Sheets',
+    'slack': 'Slack Notifier',
+    'email-send': 'Email Sender',
+    'webhook': 'Webhook Receiver',
+  }
+  return labels[nodeType] || nodeType
+}
+
+const updateNodeConfig = (nodeId, config) => {
+  nodes.value = nodes.value.map(node => {
+    if (node.id === nodeId) {
+      return {
+        ...node,
         data: {
-          label: getNodeLabel(nodeType),
-          nodeType,
-          config: { ...nodeConfig.defaults },
-          description: nodeConfig.description
-        },
-      }
-
-      console.log('Creating new node:', newNode)
-      
-      nodes.value = [...nodes.value, newNode]
-      console.log('Nodes array after add:', nodes.value.length)
-    }
-
-    const onDragOver = (event) => {
-      event.preventDefault()
-      event.stopPropagation()
-      event.dataTransfer.dropEffect = 'move'
-      event.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.05)'
-    }
-
-    // Add drag leave handler
-    const onDragLeave = (event) => {
-      event.currentTarget.style.backgroundColor = ''
-    }
-
-    const onConnect = (params) => {
-      const newEdge = {
-        id: `edge-${params.source}-${params.target}`,
-        source: params.source,
-        target: params.target,
-        type: 'smoothstep',
-        style: { stroke: '#3b82f6', strokeWidth: 2 },
-      }
-      edges.value = [...edges.value, newEdge]
-      console.log('Edge connected:', newEdge)
-    }
-
-    const getNodeLabel = (nodeType) => {
-      const labels = {
-        // Existing labels
-        'get-reviews': 'Get Reviews',
-        'k-means': 'Apply K-means Algorithm',
-        'clusters-to-list': 'Clusters to List',
-        'customer-insights': 'Customer Insights Agent',
-        'insights-to-sheets': 'Insights to GSheets',
-        // n8n node labels
-        'http-request': 'HTTP Request',
-        'google-sheets': 'Google Sheets',
-        'slack': 'Slack Notifier',
-        'email-send': 'Email Sender',
-        'webhook': 'Webhook Receiver',
-      }
-      return labels[nodeType] || nodeType
-    }
-
-     const updateNodeConfig = (nodeId, config) => {
-      nodes.value = nodes.value.map(node => {
-        if (node.id === nodeId) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              config
-            }
-          }
+          ...node.data,
+          config
         }
-        return node
-      })
-    }
-
-    const handleNodeExecute = async (nodeId) => {
-      const node = nodes.value.find(n => n.id === nodeId)
-      if (!node) return
-      
-      const nodeType = node.data.nodeType
-      const nodeConfig = node.data.config
-      
-      try {
-        // Check if it's an n8n node
-        const n8nNodeTypes = ['http-request', 'google-sheets', 'slack', 'email-send', 'webhook']
-        
-        if (n8nNodeTypes.includes(nodeType)) {
-          // Execute real n8n node
-          const n8nNode = await n8nNodes.createNode(nodeType, {
-            parameters: nodeConfig,
-            credentials: getCredentialsForNode(nodeType)
-          })
-          
-          const result = await n8nNode.execute()
-          executionOutput.value += `✅ ${node.data.label} executed successfully\n`
-          executionOutput.value += `📊 Result: ${JSON.stringify(result, null, 2)}\n\n`
-          return result
-        } else {
-          // Execute custom workflow node
-          if (nodeRefs.value[nodeId]) {
-            const result = await nodeRefs.value[nodeId].execute()
-            executionOutput.value += `✅ ${node.data.label} executed successfully\n\n`
-            return result
-          }
-        }
-      } catch (error) {
-        executionOutput.value += `❌ Error executing ${node.data.label}: ${error.message}\n\n`
-        throw error
       }
     }
+    return node
+  })
+}
 
-    const runWorkflow = async () => {
-      if (nodes.value.length === 0) {
-        executionOutput.value = 'No nodes to execute. Please add some nodes to the canvas first.'
-        return
-      }
-
-      isExecuting.value = true
-      executionOutput.value = '🚀 Starting workflow execution...\n\n'
-
-      try {
-        // Sort nodes by execution order (you might want to implement topological sort)
-        const sortedNodes = [...nodes.value]
-        
-        for (let i = 0; i < sortedNodes.length; i++) {
-          const node = sortedNodes[i]
-          executionOutput.value += `📋 Executing: ${node.data.label}\n`
-          
-          try {
-            await handleNodeExecute(node.id)
-            // Add delay between executions
-            if (i < sortedNodes.length - 1) {
-              await new Promise(resolve => setTimeout(resolve, 1000))
-            }
-          } catch (error) {
-            executionOutput.value += `❌ Workflow stopped due to error in ${node.data.label}\n`
-            break
-          }
-        }
-        
-        executionOutput.value += '✅ Workflow execution completed!\n'
-      } catch (error) {
-        executionOutput.value += `❌ Workflow execution failed: ${error.message}\n`
-      } finally {
-        isExecuting.value = false
-      }
+const handleNodeExecute = async (nodeId) => {
+  const node = nodes.value.find(n => n.id === nodeId)
+  if (!node) return
+  
+  const nodeType = node.data.nodeType
+  const nodeConfig = node.data.config
+  
+  try {
+    // First try to use the node's own execute function (for custom nodes)
+    if (nodeRefs.value[nodeId] && typeof nodeRefs.value[nodeId].execute === 'function') {
+      const result = await nodeRefs.value[nodeId].execute()
+      executionOutput.value += `✅ ${node.data.label} executed successfully\n`
+      executionOutput.value += `📊 Result: ${JSON.stringify(result, null, 2)}\n\n`
+      return result
     }
-
-    const checkN8nAvailability = async () => {
-      try {
-        const availability = await n8nNodes.getAvailableNodes()
-        console.log('n8n nodes availability:', availability)
-        executionOutput.value += `\n\n🔍 n8n nodes status: ${JSON.stringify(availability, null, 2)}\n\n`
-      } catch (error) {
-        console.warn('Could not check n8n availability:', error)
-      }
-    }
-
-    onMounted(() => {
-      console.log('Available node types:', nodeTypes.value)
-      console.log('CustomNode component:', CustomNode)
-      checkN8nAvailability()
-      debugNodes()
-    })
-
-    const simulateNodeExecution = (nodeType) => {
-      const simulations = {
-        'get-reviews':
-          '✅ Fetched 150 customer reviews from database\n  📝 Sample: "Great product, highly recommend!"',
-        'k-means':
-          '🔍 Applied K-means clustering (k=3)\n  📊 Cluster 1: 45 reviews\n  📊 Cluster 2: 67 reviews\n  📊 Cluster 3: 38 reviews',
-        'clusters-to-list':
-          '📋 Converted clusters to customer segments\n  🎯 Segments: Happy, Neutral, Unhappy Customers',
-        'customer-insights':
-          '🤖 Generated insights using AI agent\n  🏷️ Tags: "price-sensitive", "quality-focused", "service-oriented"',
-        'insights-to-sheets':
-          '📤 Data exported to Google Sheets\n  📄 File: customer-insights-2024.xlsx',
-        'http-request': 
-          '✅ Made GET request to API endpoint\n  ⏱️ Response time: 320ms\n  📦 Received 1.2KB of data\n  🔗 Status: 200 OK',
-        'google-sheets': 
-          '📊 Updated Google Sheet "Customer Data"\n  ✏️ Wrote 45 rows of insights data\n  🔗 Sheet: docs.google.com/   spreadsheets/...',
-        'slack': 
-          '💬 Sent message to #customer-insights channel\n  👥 Notified 15 team members\n  📝 Message: "New customer insights ready for review!"',
-        'email-send': 
-          '✉️ Sent email to marketing@company.com\n  📧 Subject: "Weekly Customer Insights Report"\n  📎 Attached insights   summary (PDF)',
-        'webhook': 
-          '🪝 Webhook endpoint active at /customer-data\n  🔄 Last received data 2 minutes ago\n  📥 Processed 3 incoming  requests today'
-      }
-      isExecuting.value = false
-      return simulations[nodeType] || '✅ Execution completed'
-    }
-
-    const clearCanvas = () => {
-      nodes.value = []
-      edges.value = []
-      nodeRefs.value = {}
-      executionOutput.value =
-        '🧹 Canvas cleared. Ready for new workflow...\n\nDrag nodes from the left panel to start building.\n\n💡 Pro tip: Connect nodes by dragging from output handles (bottom) to input handles (top)'
-    }
-
-    const sidebarCollapsed = ref(false)
-
-    const miniNodeTypes = [
-      // custom workflow nodes
-      { type: 'get-reviews', icon: '📄', bgClass: 'bg-blue-500 hover:bg-blue-600', label: 'Get Reviews' },
-      { type: 'k-means', icon: '🔍', bgClass: 'bg-green-500 hover:bg-green-600', label: 'Apply K-means' },
-      { type: 'clusters-to-list', icon: '📊', bgClass: 'bg-yellow-500 hover:bg-yellow-600', label: 'Clusters to List' },
-      { type: 'customer-insights', icon: '🧠', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Customer Insights' },
-      { type: 'insights-to-sheets', icon: '📈', bgClass: 'bg-red-500 hover:bg-red-600', label: 'Export to Sheets' },
-      // n8n nodes
-      { type: 'http-request', icon: '🌐', bgClass: 'bg-indigo-500 hover:bg-indigo-600', label: 'HTTP Request' },
-      { type: 'google-sheets', icon: '📊', bgClass: 'bg-emerald-500 hover:bg-emerald-600', label: 'Google Sheets' },
-      { type: 'slack', icon: '💬', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Slack' },
-      { type: 'email-send', icon: '✉️', bgClass: 'bg-cyan-500 hover:bg-cyan-600', label: 'Email' },
-      { type: 'webhook', icon: '🪝', bgClass: 'bg-orange-500 hover:bg-orange-600', label: 'Webhook' }
-    ]
-
-    const toggleSidebar = () => {
-      sidebarCollapsed.value = !sidebarCollapsed.value
-    }
-
-    const onNodeDragMini = (event, nodeType) => {
-      event.dataTransfer.setData('application/node-type', nodeType)
-      event.dataTransfer.effectAllowed = 'move'
-    }
-
-    const onNodeDragStop = (event) => {
-      console.log('Node drag stopped:', event)
-    }
-
-    const onNodesInitialized = () => {
-      console.log('Nodes initialized')
-    }
-
-    const getCredentialsForNode = (nodeType) => {
-      const credentialsMap = {
-        'slack': { token: import.meta.env.VITE_SLACK_TOKEN },
-        'google-sheets': { 
-          clientEmail: import.meta.env.VITE_GOOGLE_CLIENT_EMAIL,
-          privateKey: import.meta.env.VITE_GOOGLE_PRIVATE_KEY,
-          accessToken: import.meta.env.VITE_GOOGLE_ACCESS_TOKEN
-        },
-        'email-send': {
-          user: import.meta.env.VITE_SMTP_USER,
-          password: import.meta.env.VITE_SMTP_PASSWORD,
-          host: import.meta.env.VITE_SMTP_HOST || 'smtp.gmail.com',
-          port: import.meta.env.VITE_SMTP_PORT || 587
-        },
-        'http-request': {},
-        'webhook': {}
-      }
-      return credentialsMap[nodeType] || {}
-    }
-
     
-
-    return {
-      nodes,
-      edges,
-      executionOutput,
-      nodeTypes,
-      onNodeDrag,
-      onDrop,
-      onDragOver,
-      onConnect,
-      runWorkflow,
-      clearCanvas,
-      sidebarCollapsed,
-      miniNodeTypes,
-      toggleSidebar,
-      onNodeDragMini,
-      isExecuting,
-      nodeRefs,
-      // nodeComponents,
-      updateNodeConfig,
-      handleNodeExecute,
-      getCredentialsForNode,
-      checkN8nAvailability,
-      onNodeDragStop,
-      onNodesInitialized,
-      simulateNodeExecution
+    // Fallback: Direct execution using nodeRegistry
+    const { executeNode } = await import('@/utils/nodeRegistry')
+    
+    const nodeInstance = {
+      nodeType,
+      parameters: nodeConfig
     }
-  },
+    
+    const result = await executeNode(nodeInstance, null, getCredentialsForNode(nodeType))
+    executionOutput.value += `✅ ${node.data.label} executed successfully\n`
+    executionOutput.value += `📊 Result: ${JSON.stringify(result, null, 2)}\n\n`
+    return result
+    
+  } catch (error) {
+    console.error(`Execution error for ${nodeType}:`, error)
+    executionOutput.value += `❌ Error executing ${node.data.label}: ${error.message}\n\n`
+    
+    // Final fallback: Use simulation
+    try {
+      const result = simulateNodeExecution(nodeType)
+      executionOutput.value += `📝 Fallback simulation: ${result}\n\n`
+      return { success: true, simulation: true, data: result }
+    } catch (simError) {
+      throw error
+    }
+  }
+}
+
+const runWorkflow = async () => {
+  if (nodes.value.length === 0) {
+    executionOutput.value = 'No nodes to execute. Please add some nodes to the canvas first.'
+    return
+  }
+
+  // Debug refs
+  debugNodeRefs()
+
+  isExecuting.value = true
+  executionOutput.value = '🚀 Starting workflow execution...\n\n'
+
+  try {
+    const sortedNodes = [...nodes.value]
+    
+    for (let i = 0; i < sortedNodes.length; i++) {
+      const node = sortedNodes[i]
+      executionOutput.value += `📋 Executing: ${node.data.label}\n`
+      
+      try {
+        await handleNodeExecute(node.id)
+        if (i < sortedNodes.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        }
+      } catch (error) {
+        executionOutput.value += `❌ Workflow stopped due to error in ${node.data.label}\n`
+        break
+      }
+    }
+    
+    executionOutput.value += '✅ Workflow execution completed!\n'
+  } catch (error) {
+    executionOutput.value += `❌ Workflow execution failed: ${error.message}\n`
+  } finally {
+    isExecuting.value = false
+  }
+}
+
+const checkN8nAvailability = async () => {
+  try {
+    const { nodeLoader } = await import('@/lib/n8n-nodes.js')
+    const availability = await nodeLoader.checkN8nAvailability()
+    console.log('n8n wrapper availability:', availability)
+    executionOutput.value += `\n\n🔍 Node wrapper status: ${JSON.stringify(availability, null, 2)}\n\n`
+  } catch (error) {
+    console.warn('Could not check node availability:', error)
+  }
+}
+
+const debugNodeRefs = () => {
+  console.log('Current node refs:', Object.keys(nodeRefs.value))
+  Object.entries(nodeRefs.value).forEach(([id, ref]) => {
+    console.log(`Node ${id}:`, {
+      hasExecute: typeof ref?.execute === 'function',
+      nodeType: ref?.nodeType,
+      ref: ref
+    })
+  })
+}
+
+const debugNodes = () => {
+  console.log('Nodes array:', nodes.value)
+  console.log('Node types:', nodeTypes)
+  setTimeout(() => {
+    const nodeElements = document.querySelectorAll('.vue-flow__node-custom')
+    console.log('Found node elements:', nodeElements.length)
+    nodeElements.forEach((el, i) => {
+      console.log(`Node ${i}:`, {
+        display: getComputedStyle(el).display,
+        visibility: getComputedStyle(el).visibility,
+        opacity: getComputedStyle(el).opacity,
+        position: getComputedStyle(el).position
+      })
+    })
+  }, 1000)
+}
+
+onMounted(() => {
+  console.log('Available node types:', nodeTypes.value)
+  console.log('CustomNode component:', CustomNode)
+  checkN8nAvailability()
+  debugNodes()
+})
+
+const simulateNodeExecution = (nodeType) => {
+  const simulations = {
+    'get-reviews':
+      '✅ Fetched 150 customer reviews from database\n  📝 Sample: "Great product, highly recommend!"',
+    'k-means':
+      '🔍 Applied K-means clustering (k=3)\n  📊 Cluster 1: 45 reviews\n  📊 Cluster 2: 67 reviews\n  📊 Cluster 3: 38 reviews',
+    'clusters-to-list':
+      '📋 Converted clusters to customer segments\n  🎯 Segments: Happy, Neutral, Unhappy Customers',
+    'customer-insights':
+      '🤖 Generated insights using AI agent\n  🏷️ Tags: "price-sensitive", "quality-focused", "service-oriented"',
+    'insights-to-sheets':
+      '📤 Data exported to Google Sheets\n  📄 File: customer-insights-2024.xlsx',
+    'http-request': 
+      '✅ Made GET request to API endpoint\n  ⏱️ Response time: 320ms\n  📦 Received 1.2KB of data\n  🔗 Status: 200 OK',
+    'google-sheets': 
+      '📊 Updated Google Sheet "Customer Data"\n  ✏️ Wrote 45 rows of insights data\n  🔗 Sheet: docs.google.com/spreadsheets/...',
+    'slack': 
+      '💬 Sent message to #customer-insights channel\n  👥 Notified 15 team members\n  📝 Message: "New customer insights ready for review!"',
+    'email-send': 
+      '✉️ Sent email to marketing@company.com\n  📧 Subject: "Weekly Customer Insights Report"\n  📎 Attached insights summary (PDF)',
+    'webhook': 
+      '🪝 Webhook endpoint active at /customer-data\n  🔄 Last received data 2 minutes ago\n  📥 Processed 3 incoming requests today'
+  }
+  return simulations[nodeType] || '✅ Execution completed'
+}
+
+const clearCanvas = () => {
+  nodes.value = []
+  edges.value = []
+  nodeRefs.value = {}
+  executionOutput.value =
+    '🧹 Canvas cleared. Ready for new workflow...\n\nDrag nodes from the left panel to start building.\n\n💡 Pro tip: Connect nodes by dragging from output handles (bottom) to input handles (top)'
+}
+
+const sidebarCollapsed = ref(false)
+
+const miniNodeTypes = [
+  { type: 'get-reviews', icon: '📄', bgClass: 'bg-blue-500 hover:bg-blue-600', label: 'Get Reviews' },
+  { type: 'k-means', icon: '🔍', bgClass: 'bg-green-500 hover:bg-green-600', label: 'Apply K-means' },
+  { type: 'clusters-to-list', icon: '📊', bgClass: 'bg-yellow-500 hover:bg-yellow-600', label: 'Clusters to List' },
+  { type: 'customer-insights', icon: '🧠', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Customer Insights' },
+  { type: 'insights-to-sheets', icon: '📈', bgClass: 'bg-red-500 hover:bg-red-600', label: 'Export to Sheets' },
+  { type: 'http-request', icon: '🌐', bgClass: 'bg-indigo-500 hover:bg-indigo-600', label: 'HTTP Request' },
+  { type: 'google-sheets', icon: '📊', bgClass: 'bg-emerald-500 hover:bg-emerald-600', label: 'Google Sheets' },
+  { type: 'slack', icon: '💬', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Slack' },
+  { type: 'email-send', icon: '✉️', bgClass: 'bg-cyan-500 hover:bg-cyan-600', label: 'Email' },
+  { type: 'webhook', icon: '🪝', bgClass: 'bg-orange-500 hover:bg-orange-600', label: 'Webhook' }
+]
+
+const toggleSidebar = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+}
+
+const onNodeDragMini = (event, nodeType) => {
+  event.dataTransfer.setData('application/node-type', nodeType)
+  event.dataTransfer.effectAllowed = 'move'
+}
+
+const onNodeDragStop = (event) => {
+  console.log('Node drag stopped:', event)
+}
+
+const getCredentialsForNode = (nodeType) => {
+  const credentialsMap = {
+    'slack': { token: import.meta.env.VITE_SLACK_TOKEN },
+    'google-sheets': { 
+      clientEmail: import.meta.env.VITE_GOOGLE_CLIENT_EMAIL,
+      privateKey: import.meta.env.VITE_GOOGLE_PRIVATE_KEY,
+      accessToken: import.meta.env.VITE_GOOGLE_ACCESS_TOKEN
+    },
+    'email-send': {
+      user: import.meta.env.VITE_SMTP_USER,
+      password: import.meta.env.VITE_SMTP_PASSWORD,
+      host: import.meta.env.VITE_SMTP_HOST || 'smtp.gmail.com',
+      port: import.meta.env.VITE_SMTP_PORT || 587
+    },
+    'http-request': {},
+    'webhook': {}
+  }
+  return credentialsMap[nodeType] || {}
 }
 </script>
 
@@ -692,7 +673,15 @@ body {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
   opacity: 1 !important;
   visibility: visible !important;
-  z-index: 1 !important;
+  display: block !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+:deep(.vue-flow__node) {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
 }
 
 /* Force visibility */

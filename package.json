@@ -14,14 +14,14 @@
     "@vue-flow/controls": "^1.1.2",
     "@vue-flow/core": "^1.45.0",
     "@vue-flow/minimap": "^1.5.3",
+    "axios": "^1.11.0",
     "element-plus": "^2.10.2",
-    "vue": "^3.5.17",
-    "axios": "^1.6.2",
-    "form-data": "^4.0.0",
-    "jsonwebtoken": "^9.0.2",
-    "google-auth-library": "^9.0.0",
+    "form-data": "^4.0.4",
+    "google-auth-library": "^9.15.1",
     "googleapis": "^126.0.1",
-    "slack-web-api-client": "^0.1.0"
+    "jsonwebtoken": "^9.0.2",
+    "slack-web-api-client": "^0.1.6",
+    "vue": "^3.5.17"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.0",

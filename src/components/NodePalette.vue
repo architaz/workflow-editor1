@@ -99,9 +99,9 @@ export default {
         icon: '💬'
       },
       {
-        type: 'email',
+        type: 'email-send',
         label: 'Email',
-        description: 'Send emails with results',
+        description: 'Send emails via SMTP',
         iconClass: 'bg-gradient-to-br from-blue-500 to-blue-600',
         icon: '✉️'
       },

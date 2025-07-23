@@ -1,5 +1,5 @@
 <template>
-  <div class="custom-node group" :class="{ executing: isExecuting, selected: isSelected }">
+  <div class="custom-node group visible-node" :class="{ executing: isExecuting, selected: isSelected }">
     <Handle type="target" :position="Position.Top" class="handle-target" />
 
     <!-- Background gradient overlay -->
@@ -11,7 +11,7 @@
           <div class="node-icon" :class="iconClass">
             {{ iconText }}
           </div>
-          <div class="icon-glow"></div>
+          <div class="icon-glow" :class="iconGlow"></div>
         </div>
         <div class="node-status">
           <div class="status-dot" :class="statusClass"></div>
@@ -51,198 +51,193 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { Handle, Position } from '@vue-flow/core'
 import { ref, computed, onMounted } from 'vue'
 
-export default {
-  name: 'CustomNode',
-  components: { Handle },
-  props: {
-    data: {
-      type: Object,
-      required: true,
-    },
-    selected: {
-      type: Boolean,
-      default: false,
-    },
+const props = defineProps({
+  data: {
+    type: Object,
+    required: true,
   },
-  setup(props) {
-    const isExecuting = ref(false)
-    const progressPercent = ref(0)
-    const showProgress = ref(false)
+  selected: {
+    type: Boolean,
+    default: false,
+  },
+})
 
-    const getIconInfo = (nodeType) => {
-      const icons = {
-        'get-reviews': {
-          class: 'from-blue-500 via-blue-600 to-indigo-600',
-          text: '📊',
-          glow: 'shadow-blue-500/50',
-        },
-        'k-means': {
-          class: 'from-emerald-500 via-green-600 to-teal-600',
-          text: '🔍',
-          glow: 'shadow-green-500/50',
-        },
-        'clusters-to-list': {
-          class: 'from-amber-500 via-yellow-600 to-orange-600',
-          text: '📈',
-          glow: 'shadow-yellow-500/50',
-        },
-        'customer-insights': {
-          class: 'from-purple-500 via-violet-600 to-indigo-600',
-          text: '🧠',
-          glow: 'shadow-purple-500/50',
-        },
-        'insights-to-sheets': {
-          class: 'from-rose-500 via-red-600 to-pink-600',
-          text: '📋',
-          glow: 'shadow-red-500/50',
-        },
-        'http-request': {
-          class: 'from-indigo-500 via-indigo-600 to-purple-600',
-          text: '🌐',
-          glow: 'shadow-indigo-500/50',
-        },
-        'google-sheets': {
-          class: 'from-green-500 via-green-600 to-teal-600',
-          text: '📊',
-          glow: 'shadow-green-500/50',
-        },
-        'slack': {
-          class: 'from-purple-500 via-violet-600 to-indigo-600',
-          text: '💬',
-          glow: 'shadow-purple-500/50',
-        },
-        'email': {
-          class: 'from-blue-500 via-blue-600 to-indigo-600',
-          text: '✉️',
-          glow: 'shadow-blue-500/50',
-        },
-        'webhook': {
-          class: 'from-red-500 via-red-600 to-pink-600',
-          text: '🪝',
-          glow: 'shadow-red-500/50',
-        }
-      }
-      return (
-        icons[nodeType] || {
-          class: 'from-slate-500 via-gray-600 to-zinc-600',
-          text: '⚙️',
-          glow: 'shadow-gray-500/50',
-        }
-      )
-    }
+const isExecuting = ref(false)
+const progressPercent = ref(0)
+const showProgress = ref(false)
 
-    const getNodeTypeLabel = (nodeType) => {
-      const labels = {
-        'get-reviews': 'Data Source',
-        'k-means': 'ML Algorithm',
-        'clusters-to-list': 'Transformer',
-        'customer-insights': 'AI Agent',
-        'insights-to-sheets': 'Export',
-        'http-request': 'API Connector',
-        'google-sheets': 'Spreadsheet',
-        'slack': 'Notification',
-        'email': 'Communication',
-        'webhook': 'Data Receiver',
-      }
-      return labels[nodeType] || 'Processing Node'
-    }
-
-    const iconInfo = getIconInfo(props.data.nodeType)
-
-    const isSelected = computed(() => props.selected)
-
-    const statusClass = computed(() => {
-      if (isExecuting.value) return 'status-executing'
-      if (props.data.status === 'error') return 'status-error'
-      if (props.data.status === 'completed') return 'status-completed'
-      return 'status-idle'
-    })
-
-    // Simulate execution progress
-    const simulateExecution = () => {
-      isExecuting.value = true
-      showProgress.value = true
-      progressPercent.value = 0
-
-      const interval = setInterval(() => {
-        progressPercent.value += Math.random() * 15
-        if (progressPercent.value >= 100) {
-          progressPercent.value = 100
-          clearInterval(interval)
-          setTimeout(() => {
-            isExecuting.value = false
-            showProgress.value = false
-          }, 1000)
-        }
-      }, 200)
-    }
-
-    onMounted(() => {
-      // Auto-trigger execution demo after 3 seconds
-      setTimeout(() => {
-        if (Math.random() > 0.7) {
-          simulateExecution()
-        }
-      }, 3000)
-    })
-
-    const execute = async () => {
-      const nodeType = props.data.nodeType
-      const nodeConfig = props.data.config
-
-      try {
-        // Get node definition from registry
-        const { executeNode } = await import('@/utils/nodeRegistry')
-        const nodeInstance = {
-          nodeType,
-          parameters: nodeConfig
-        }
-        const result = await executeNode(nodeInstance)
-        return result
-      } catch (error) {
-        console.error('Node execution failed:', error)
-        throw error
-      }
-    }
-
-    defineExpose({ 
-      execute,
-      nodeType: props.data.nodeType,
-      config: props.data.config 
-    })
-
-    return {
-      Position,
-      iconClass: `bg-gradient-to-br ${iconInfo.class}`,
-      iconText: iconInfo.text,
-      iconGlow: iconInfo.glow,
-      getNodeTypeLabel,
-      isExecuting,
-      isSelected,
-      statusClass,
-      progressPercent,
-      showProgress,
-      simulateExecution,
-      execute
+const getIconInfo = (nodeType) => {
+  const icons = {
+    'get-reviews': {
+      class: 'from-blue-500 via-blue-600 to-indigo-600',
+      text: '📊',
+      glow: 'shadow-blue-500/50',
+    },
+    'k-means': {
+      class: 'from-emerald-500 via-green-600 to-teal-600',
+      text: '🔍',
+      glow: 'shadow-green-500/50',
+    },
+    'clusters-to-list': {
+      class: 'from-amber-500 via-yellow-600 to-orange-600',
+      text: '📈',
+      glow: 'shadow-yellow-500/50',
+    },
+    'customer-insights': {
+      class: 'from-purple-500 via-violet-600 to-indigo-600',
+      text: '🧠',
+      glow: 'shadow-purple-500/50',
+    },
+    'insights-to-sheets': {
+      class: 'from-rose-500 via-red-600 to-pink-600',
+      text: '📋',
+      glow: 'shadow-red-500/50',
+    },
+    'http-request': {
+      class: 'from-indigo-500 via-indigo-600 to-purple-600',
+      text: '🌐',
+      glow: 'shadow-indigo-500/50',
+    },
+    'google-sheets': {
+      class: 'from-green-500 via-green-600 to-teal-600',
+      text: '📊',
+      glow: 'shadow-green-500/50',
+    },
+    'slack': {
+      class: 'from-purple-500 via-violet-600 to-indigo-600',
+      text: '💬',
+      glow: 'shadow-purple-500/50',
+    },
+    'email-send': {
+      class: 'from-blue-500 via-blue-600 to-indigo-600',
+      text: '✉️',
+      glow: 'shadow-blue-500/50',
+    },
+    'webhook': {
+      class: 'from-red-500 via-red-600 to-pink-600',
+      text: '🪝',
+      glow: 'shadow-red-500/50',
     }
   }
+  return (
+    icons[nodeType] || {
+      class: 'from-slate-500 via-gray-600 to-zinc-600',
+      text: '⚙️',
+      glow: 'shadow-gray-500/50',
+    }
+  )
 }
+
+const getNodeTypeLabel = (nodeType) => {
+  const labels = {
+    'get-reviews': 'Data Source',
+    'k-means': 'ML Algorithm',
+    'clusters-to-list': 'Transformer',
+    'customer-insights': 'AI Agent',
+    'insights-to-sheets': 'Export',
+    'http-request': 'API Connector',
+    'google-sheets': 'Spreadsheet',
+    'slack': 'Notification',
+    'email-send': 'Communication',
+    'webhook': 'Data Receiver',
+  }
+  return labels[nodeType] || 'Processing Node'
+}
+
+const iconInfo = getIconInfo(props.data.nodeType)
+
+const isSelected = computed(() => props.selected)
+
+const statusClass = computed(() => {
+  if (isExecuting.value) return 'status-executing'
+  if (props.data.status === 'error') return 'status-error'
+  if (props.data.status === 'completed') return 'status-completed'
+  return 'status-idle'
+})
+
+// Simulate execution progress
+const simulateExecution = () => {
+  isExecuting.value = true
+  showProgress.value = true
+  progressPercent.value = 0
+
+  const interval = setInterval(() => {
+    progressPercent.value += Math.random() * 15
+    if (progressPercent.value >= 100) {
+      progressPercent.value = 100
+      clearInterval(interval)
+      setTimeout(() => {
+        isExecuting.value = false
+        showProgress.value = false
+      }, 1000)
+    }
+  }, 200)
+}
+
+onMounted(() => {
+  // Auto-trigger execution demo after 3 seconds
+  setTimeout(() => {
+    if (Math.random() > 0.7) {
+      simulateExecution()
+    }
+  }, 3000)
+})
+
+const execute = async () => {
+  const nodeType = props.data.nodeType
+  const nodeConfig = props.data.config
+
+  try {
+    // Get node definition from registry
+    const { executeNode } = await import('@/utils/nodeRegistry')
+    const nodeInstance = {
+      nodeType,
+      parameters: nodeConfig
+    }
+    const result = await executeNode(nodeInstance)
+    return result
+  } catch (error) {
+    console.error('Node execution failed:', error)
+    throw error
+  }
+}
+
+// Use defineExpose to expose the execute function
+defineExpose({ 
+  execute,
+  nodeType: props.data.nodeType,
+  config: props.data.config 
+})
+
+const iconClass = `bg-gradient-to-br ${iconInfo.class}`
+const iconText = iconInfo.text
+const iconGlow = iconInfo.glow
 </script>
 
 <style scoped>
+/* Force visibility - CRITICAL for nodes to show */
+.visible-node {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  position: relative !important;
+  z-index: 1 !important;
+  pointer-events: auto !important;
+}
+
 .custom-node {
   position: relative;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(30, 41, 59, 0.95);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid rgba(71, 85, 105, 0.8);
   border-radius: 20px;
   padding: 0;
-  min-width: 220px;
-  max-width: 300px;
+  min-width: 160px;
+  max-width: 200px;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 2px 4px -1px rgba(0, 0, 0, 0.03),
@@ -250,6 +245,10 @@ export default {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   transform-origin: center;
+  /* Force visibility */
+  /* opacity: 1 !important; */
+  visibility: visible !important;
+  display: block !important;
 }
 
 .node-backdrop {
@@ -260,9 +259,9 @@ export default {
   bottom: 0;
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(248, 250, 252, 0.05) 50%,
-    rgba(241, 245, 249, 0.1) 100%
+    rgba(30, 41, 59, 0.1) 0%,
+    rgba(51, 65, 85, 0.05) 50%,
+    rgba(71, 85, 105, 0.1) 100%
   );
   z-index: 0;
 }
@@ -301,7 +300,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 20px 12px 20px;
+  padding: 16px 16px 10px 16px;
 }
 
 .node-icon-container {
@@ -312,9 +311,9 @@ export default {
 }
 
 .node-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 36px;           
+  height: 36px;           
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -326,6 +325,7 @@ export default {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 2;
+  border-radius: 25%;
 }
 
 .icon-glow {
@@ -398,13 +398,14 @@ export default {
 }
 
 .node-body {
-  padding: 0 20px 20px 20px;
+  padding: 0 16px 16px 16px;
 }
 
 .node-label {
-  font-weight: 600;
-  font-size: 16px;
-  color: #1e293b;
+  font-weight: 700;
+  font-size: 14px;
+  color: #f1f5f9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
   margin-bottom: 6px;
   line-height: 1.3;
   letter-spacing: -0.01em;
@@ -412,16 +413,17 @@ export default {
 
 .node-type {
   font-size: 11px;
-  color: #64748b;
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 8px;
 }
 
 .node-description {
   font-size: 12px;
-  color: #64748b;
+  color: #94a3b8;
+  font-weight: 500;
   line-height: 1.4;
   margin-top: 8px;
 }
@@ -438,7 +440,7 @@ export default {
   flex: 1;
   position: relative;
   height: 4px;
-  background: rgba(226, 232, 240, 0.8);
+  background: rgba(51, 65, 85, 0.8);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -465,7 +467,7 @@ export default {
 .progress-text {
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
+  color: #94a3b8;
   min-width: 32px;
   text-align: right;
 }
@@ -486,7 +488,7 @@ export default {
 
 .metric-label {
   font-size: 10px;
-  color: #64748b;
+  color: #94a3b8;;
   text-transform: uppercase;
   font-weight: 500;
 }
@@ -494,7 +496,7 @@ export default {
 .metric-value {
   font-size: 12px;
   font-weight: 600;
-  color: #1e293b;
+  color: #f1f5f9;
 }
 
 .animated-border {
@@ -540,105 +542,44 @@ export default {
   opacity: 1;
 }
 
+/* Enhanced handle styling */
 .handle-target,
 .handle-source {
   background: linear-gradient(135deg, #3b82f6, #6366f1) !important;
-  border: 3px solid rgba(255, 255, 255, 0.9) !important;
-  width: 16px !important;
-  height: 16px !important;
+  border: 3px solid rgba(255, 255, 255, 1) !important;
+  width: 18px !important;
+  height: 18px !important;
   border-radius: 50% !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.1),
-    0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+    0 0 0 3px rgba(245, 158, 11, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.2) !important;
   opacity: 1 !important;
   visibility: visible !important;
-  z-index: 10 !important;
+  z-index: 100 !important;
 }
 
 .handle-target:hover,
 .handle-source:hover {
   background: linear-gradient(135deg, #1d4ed8, #4f46e5) !important;
-  transform: scale(1.4) !important;
+  transform: scale(1.5) !important;
   box-shadow:
-    0 4px 8px rgba(0, 0, 0, 0.15),
-    0 0 0 4px rgba(59, 130, 246, 0.3) !important;
+    0 0 0 5px rgba(220, 38, 38, 0.5),    /* Red glow ring on hover */
+    0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    z-index: 200 !important;
 }
 
 .handle-target {
-  top: -7px !important;
+  top: -9px !important;
 }
 
 .handle-source {
-  bottom: -7px !important;
-}
-
-/* Add these styles to your CustomNode.vue <style> section */
-
-.handle-target,
-.handle-source {
-  position: absolute !important;
-  width: 14px !important;
-  height: 14px !important;
-  border-radius: 50% !important;
-  background: #3b82f6 !important;
-  border: 2px solid #ffffff !important;
-  z-index: 1000 !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  transition: all 0.3s ease !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-}
-
-.handle-target:hover,
-.handle-source:hover {
-  background: linear-gradient(135deg, #1d4ed8, #4f46e5) !important;
-  transform: translateX(-50%) scale(1.3) !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
-}
-
-.handle-target {
-  top: -8px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-}
-
-.handle-source {
-  bottom: -8px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-}
-
-:deep(.vue-flow__handle) {
-  background: #3b82f6 !important;
-  border: 2px solid #ffffff !important;
-  width: 14px !important;
-  height: 14px !important;
-  border-radius: 50% !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  z-index: 1000 !important;
-  transition: all 0.3s ease !important;
-}
-
-:deep(.vue-flow__handle:hover) {
-  background: #1d4ed8 !important;
-  transform: scale(1.3) !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
-}
-
-:deep(.vue-flow__handle-top) {
-  top: -7px !important;
-}
-
-:deep(.vue-flow__handle-bottom) {
-  bottom: -7px !important;
+  bottom: -9px !important;
 }
 
 /* Animations */
 @keyframes statusPulse {
-  0%,
-  100% {
+  0%, 100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -666,37 +607,23 @@ export default {
 }
 
 @keyframes progressShimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 @keyframes shimmer {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 100%;
-  }
+  0% { left: -100%; }
+  100% { left: 100%; }
 }
 
 @keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   .custom-node {
     background: rgba(15, 23, 42, 0.95);
     border-color: rgba(51, 65, 85, 0.8);
@@ -727,5 +654,5 @@ export default {
   .metric-value {
     color: #f1f5f9;
   }
-}
+} */
 </style>

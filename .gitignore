@@ -28,3 +28,6 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# Exclude n8n submodule from Vite scanning
+lib/n8n
