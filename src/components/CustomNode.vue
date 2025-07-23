@@ -181,7 +181,7 @@ const simulateExecution = () => {
 onMounted(() => {
   // Auto-trigger execution demo after 3 seconds
   setTimeout(() => {
-    if (Math.random() > 0.7) {
+    if (Math.random() > 0.2) {
       simulateExecution()
     }
   }, 3000)
@@ -231,13 +231,13 @@ const iconGlow = iconInfo.glow
 
 .custom-node {
   position: relative;
-  background: rgba(30, 41, 59, 0.95);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(71, 85, 105, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.8);
   border-radius: 20px;
   padding: 0;
-  min-width: 160px;
-  max-width: 200px;
+  min-width: 220px;
+  max-width: 300px;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 2px 4px -1px rgba(0, 0, 0, 0.03),
@@ -259,9 +259,9 @@ const iconGlow = iconInfo.glow
   bottom: 0;
   background: linear-gradient(
     135deg,
-    rgba(30, 41, 59, 0.1) 0%,
-    rgba(51, 65, 85, 0.05) 50%,
-    rgba(71, 85, 105, 0.1) 100%
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(248, 250, 252, 0.05) 50%,
+    rgba(241, 245, 249, 0.1) 100%
   );
   z-index: 0;
 }
@@ -311,9 +311,9 @@ const iconGlow = iconInfo.glow
 }
 
 .node-icon {
-  width: 36px;           
-  height: 36px;           
-  font-size: 16px;
+  width: 40px;           
+  height: 40px;           
+  font-size: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -403,8 +403,8 @@ const iconGlow = iconInfo.glow
 
 .node-label {
   font-weight: 700;
-  font-size: 14px;
-  color: #f1f5f9;
+  font-size: 16px;
+  color: #1e293b;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
   margin-bottom: 6px;
   line-height: 1.3;
@@ -440,7 +440,7 @@ const iconGlow = iconInfo.glow
   flex: 1;
   position: relative;
   height: 4px;
-  background: rgba(51, 65, 85, 0.8);
+  background: rgba(226, 232, 240, 0.8);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -546,14 +546,14 @@ const iconGlow = iconInfo.glow
 .handle-target,
 .handle-source {
   background: linear-gradient(135deg, #3b82f6, #6366f1) !important;
-  border: 3px solid rgba(255, 255, 255, 1) !important;
+  border: 3px solid rgba(255, 255, 255, 0.9) !important;
   width: 18px !important;
   height: 18px !important;
   border-radius: 50% !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   box-shadow:
-    0 0 0 3px rgba(245, 158, 11, 0.4),
-    0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 0 0 2px rgba(59, 130, 246, 0.2) !important;
   opacity: 1 !important;
   visibility: visible !important;
   z-index: 100 !important;
@@ -564,17 +564,47 @@ const iconGlow = iconInfo.glow
   background: linear-gradient(135deg, #1d4ed8, #4f46e5) !important;
   transform: scale(1.5) !important;
   box-shadow:
-    0 0 0 5px rgba(220, 38, 38, 0.5),    /* Red glow ring on hover */
-    0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    0 4px 8px rgba(0, 0, 0, 0.15),
+    0 0 0 4px rgba(59, 130, 246, 0.3) !important;
     z-index: 200 !important;
 }
 
 .handle-target {
   top: -9px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
 }
 
 .handle-source {
   bottom: -9px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+:deep(.vue-flow__handle) {
+  background: #3b82f6 !important;
+  border: 2px solid #ffffff !important;
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 1000 !important;
+  transition: all 0.3s ease !important;
+}
+
+:deep(.vue-flow__handle:hover) {
+  background: #1d4ed8 !important;
+  transform: scale(1.3) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+:deep(.vue-flow__handle-top) {
+  top: -7px !important;
+}
+
+:deep(.vue-flow__handle-bottom) {
+  bottom: -7px !important;
 }
 
 /* Animations */
@@ -623,7 +653,7 @@ const iconGlow = iconInfo.glow
 }
 
 /* Dark mode support */
-/* @media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) {
   .custom-node {
     background: rgba(15, 23, 42, 0.95);
     border-color: rgba(51, 65, 85, 0.8);
@@ -654,5 +684,5 @@ const iconGlow = iconInfo.glow
   .metric-value {
     color: #f1f5f9;
   }
-} */
+}
 </style>

@@ -655,7 +655,7 @@ body {
 .canvas-container {
   position: relative;
 }
-/* Ensure Vue Flow is properly sized */
+
 .vue-flow {
   width: 100% !important;
   height: 100% !important;
@@ -682,19 +682,5 @@ body {
   opacity: 1 !important;
   visibility: visible !important;
   display: block !important;
-}
-
-/* Force visibility */
-.custom-node {
-  background: white !important;
-  border: 2px solid #e2e8f0 !important;
-  border-radius: 12px !important;
-  padding: 16px !important;
-  min-width: 180px !important;
-  min-height: 80px !important;
-  position: relative !important;
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
 }
 </style>
