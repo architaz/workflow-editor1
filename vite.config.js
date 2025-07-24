@@ -9,11 +9,15 @@ export default defineConfig({
     viteDevTools(),
   ],
   server: {
-    port: 3000
+    port: 3000,
+    fs: {
+      allow: ['..'] // Allow access to parent directories for submodules
+    }
   },
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      'n8n': fileURLToPath(new URL('./lib/n8n', import.meta.url))
     },
   },
   optimizeDeps: {
@@ -24,11 +28,14 @@ export default defineConfig({
       'googleapis',
       'slack-web-api-client'
     ],
-    exclude: ['lib/n8n'] // Exclude n8n submodule
+    exclude: ['lib/n8n/**'] // Exclude n8n submodule
   },
   build: {
     rollupOptions: {
-      external: ['lib/n8n/**'] // Don't process n8n files
+      external: (id) => {
+        // Don't bundle n8n files, treat them as external
+        return id.includes('lib/n8n/') || id.includes('/n8n/')
+      }
     }
   }
 })

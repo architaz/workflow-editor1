@@ -2,11 +2,11 @@ import { n8nWrappers } from './n8n-wrapper.js';
 
 // Node path mapping for your n8n submodule
 const NODE_PATHS = {
-  'http-request': './n8n/packages/nodes-base/nodes/HttpRequest/HttpRequest.node.js',
-  'slack': './n8n/packages/nodes-base/nodes/Slack/Slack.node.js', 
-  'google-sheets': './n8n/packages/nodes-base/nodes/Google/Sheets/GoogleSheets.node.js',
-  'email-send': './n8n/packages/nodes-base/nodes/EmailSend/EmailSend.node.js',
-  'webhook': './n8n/packages/nodes-base/nodes/Webhook/Webhook.node.js'
+  'http-request': 'HttpRequest/HttpRequest.node.js',
+  'slack': 'Slack/Slack.node.js', 
+  'google-sheets': 'Google/Sheets/GoogleSheets.node.js',
+  'email-send': 'EmailSend/EmailSend.node.js',
+  'webhook': 'Webhook/Webhook.node.js'
 };
 
 // Fallback wrapper mapping
@@ -28,11 +28,11 @@ export const nodeLoader = {
         throw new Error(`Unknown node type: ${nodeType}`);
       }
 
-      // Try multiple possible paths for your n8n submodule
+      // Correct path construction
       const possiblePaths = [
+        `/lib/n8n/packages/nodes-base/nodes/${nodePath}`,
         `../lib/n8n/packages/nodes-base/nodes/${nodePath}`,
-        `./lib/n8n/packages/nodes-base/nodes/${nodePath}`,
-        `../../n8n/packages/nodes-base/nodes/${nodePath}`
+        `./lib/n8n/packages/nodes-base/nodes/${nodePath}`
       ];
 
       for (const path of possiblePaths) {
@@ -41,6 +41,7 @@ export const nodeLoader = {
           console.log(`✓ Loaded real n8n node: ${nodeType} from ${path}`);
           return nodeModule.default || nodeModule;
         } catch (err) {
+          console.log(`Failed to load from ${path}:`, err.message);
           continue; // Try next path
         }
       }
