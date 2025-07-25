@@ -8,10 +8,16 @@
     <div class="node-content">
       <div class="node-header">
         <div class="node-icon-container">
-          <div class="node-icon" :class="iconClass">
-            {{ iconText }}
+          <div 
+            class="node-icon w-10 h-10 rounded-lg shadow-md flex items-center justify-center text-white transition-all duration-300"
+            :style="{ backgroundColor: iconColor }"
+          >
+            <div 
+              v-html="iconSvg" 
+              class="w-6 h-6"
+            ></div>
           </div>
-          <div class="icon-glow" :class="iconGlow"></div>
+          <div class="icon-glow shadow-lg"></div>
         </div>
         <div class="node-status">
           <div class="status-dot" :class="statusClass"></div>
@@ -54,6 +60,7 @@
 <script setup>
 import { Handle, Position } from '@vue-flow/core'
 import { ref, computed, onMounted } from 'vue'
+import { getN8nNodeIcon, getN8nNodeColor } from '@/utils/n8nIcons.js'
 
 const props = defineProps({
   data: {
@@ -68,69 +75,7 @@ const props = defineProps({
 
 const isExecuting = ref(false)
 const progressPercent = ref(0)
-const showProgress = ref(false)
-
-const getIconInfo = (nodeType) => {
-  const icons = {
-    'get-reviews': {
-      class: 'from-blue-500 via-blue-600 to-indigo-600',
-      text: '📊',
-      glow: 'shadow-blue-500/50',
-    },
-    'k-means': {
-      class: 'from-emerald-500 via-green-600 to-teal-600',
-      text: '🔍',
-      glow: 'shadow-green-500/50',
-    },
-    'clusters-to-list': {
-      class: 'from-amber-500 via-yellow-600 to-orange-600',
-      text: '📈',
-      glow: 'shadow-yellow-500/50',
-    },
-    'customer-insights': {
-      class: 'from-purple-500 via-violet-600 to-indigo-600',
-      text: '🧠',
-      glow: 'shadow-purple-500/50',
-    },
-    'insights-to-sheets': {
-      class: 'from-rose-500 via-red-600 to-pink-600',
-      text: '📋',
-      glow: 'shadow-red-500/50',
-    },
-    'http-request': {
-      class: 'from-indigo-500 via-indigo-600 to-purple-600',
-      text: '🌐',
-      glow: 'shadow-indigo-500/50',
-    },
-    'google-sheets': {
-      class: 'from-green-500 via-green-600 to-teal-600',
-      text: '📊',
-      glow: 'shadow-green-500/50',
-    },
-    'slack': {
-      class: 'from-purple-500 via-violet-600 to-indigo-600',
-      text: '💬',
-      glow: 'shadow-purple-500/50',
-    },
-    'email-send': {
-      class: 'from-blue-500 via-blue-600 to-indigo-600',
-      text: '✉️',
-      glow: 'shadow-blue-500/50',
-    },
-    'webhook': {
-      class: 'from-red-500 via-red-600 to-pink-600',
-      text: '🪝',
-      glow: 'shadow-red-500/50',
-    }
-  }
-  return (
-    icons[nodeType] || {
-      class: 'from-slate-500 via-gray-600 to-zinc-600',
-      text: '⚙️',
-      glow: 'shadow-gray-500/50',
-    }
-  )
-}
+const showProgress = computed(() => isExecuting.value || props.data.showProgress)
 
 const getNodeTypeLabel = (nodeType) => {
   const labels = {
@@ -148,8 +93,6 @@ const getNodeTypeLabel = (nodeType) => {
   return labels[nodeType] || 'Processing Node'
 }
 
-const iconInfo = getIconInfo(props.data.nodeType)
-
 const isSelected = computed(() => props.selected)
 
 const statusClass = computed(() => {
@@ -159,10 +102,13 @@ const statusClass = computed(() => {
   return 'status-idle'
 })
 
+// Get icon info for the current node
+const iconSvg = computed(() => getN8nNodeIcon(props.data.nodeType))
+const iconColor = computed(() => getN8nNodeColor(props.data.nodeType))
+
 // Simulate execution progress
 const simulateExecution = () => {
   isExecuting.value = true
-  showProgress.value = true
   progressPercent.value = 0
 
   const interval = setInterval(() => {
@@ -172,7 +118,6 @@ const simulateExecution = () => {
       clearInterval(interval)
       setTimeout(() => {
         isExecuting.value = false
-        showProgress.value = false
       }, 1000)
     }
   }, 200)
@@ -212,10 +157,6 @@ defineExpose({
   nodeType: props.data.nodeType,
   config: props.data.config 
 })
-
-const iconClass = `bg-gradient-to-br ${iconInfo.class}`
-const iconText = iconInfo.text
-const iconGlow = iconInfo.glow
 </script>
 
 <style scoped>

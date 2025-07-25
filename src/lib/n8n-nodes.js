@@ -1,133 +1,119 @@
-import { n8nWrappers } from './n8n-wrapper.js';
+import { NodeLibraries } from './node-libraries.js'
 
-// Node path mapping for your n8n submodule
-const NODE_PATHS = {
-  'http-request': 'HttpRequest/HttpRequest.node.js',
-  'slack': 'Slack/Slack.node.js', 
-  'google-sheets': 'Google/Sheets/GoogleSheets.node.js',
-  'email-send': 'EmailSend/EmailSend.node.js',
-  'webhook': 'Webhook/Webhook.node.js'
-};
+// Production-ready node implementations using real APIs
+export class HTTPRequestNode {
+  constructor(config) {
+    this.config = config
+    this.parameters = config.parameters || {}
+    this.credentials = config.credentials || {}
+  }
 
-// Fallback wrapper mapping
-const WRAPPER_MAP = {
-  'http-request': n8nWrappers.HTTPRequestWrapper,
-  'slack': n8nWrappers.SlackWrapper,
-  'google-sheets': n8nWrappers.GoogleSheetsWrapper,
-  'email': n8nWrappers.EmailSendWrapper,
-  'webhook': n8nWrappers.WebhookWrapper
-};
+  async execute() {
+    return await NodeLibraries.httpRequest({
+      ...this.parameters,
+      auth: this.credentials
+    })
+  }
+}
 
-// Enhanced node loader with fallback mechanism
+export class SlackNode {
+  constructor(config) {
+    this.config = config
+    this.parameters = config.parameters || {}
+    this.credentials = config.credentials || {}
+  }
+
+  async execute() {
+    return await NodeLibraries.slack({
+      ...this.parameters,
+      token: this.credentials.token
+    })
+  }
+}
+
+export class GoogleSheetsNode {
+  constructor(config) {
+    this.config = config
+    this.parameters = config.parameters || {}
+    this.credentials = config.credentials || {}
+  }
+
+  async execute() {
+    return await NodeLibraries.googleSheets({
+      ...this.parameters,
+      credentials: this.credentials
+    })
+  }
+}
+
+export class EmailSendNode {
+  constructor(config) {
+    this.config = config
+    this.parameters = config.parameters || {}
+    this.credentials = config.credentials || {}
+  }
+
+  async execute() {
+    return await NodeLibraries.email({
+      ...this.parameters,
+      credentials: this.credentials
+    })
+  }
+}
+
+export class WebhookNode {
+  constructor(config) {
+    this.config = config
+    this.parameters = config.parameters || {}
+    this.credentials = config.credentials || {}
+  }
+
+  async execute() {
+    return await NodeLibraries.webhook(this.parameters)
+  }
+}
+
+// Simple node loader that always works
 export const nodeLoader = {
   async loadNode(nodeType) {
-    // First try to load real n8n node
-    try {
-      const nodePath = NODE_PATHS[nodeType];
-      if (!nodePath) {
-        throw new Error(`Unknown node type: ${nodeType}`);
-      }
-
-      // Correct path construction
-      const possiblePaths = [
-        `/lib/n8n/packages/nodes-base/nodes/${nodePath}`,
-        `../lib/n8n/packages/nodes-base/nodes/${nodePath}`,
-        `./lib/n8n/packages/nodes-base/nodes/${nodePath}`
-      ];
-
-      for (const path of possiblePaths) {
-        try {
-          const nodeModule = await import(/* @vite-ignore */ path);
-          console.log(`✓ Loaded real n8n node: ${nodeType} from ${path}`);
-          return nodeModule.default || nodeModule;
-        } catch (err) {
-          console.log(`Failed to load from ${path}:`, err.message);
-          continue; // Try next path
-        }
-      }
-      
-      throw new Error('No valid n8n node path found');
-    } catch (error) {
-      console.warn(`⚠ Real n8n node not available for ${nodeType}, using wrapper:`, error.message);
-      
-      // Fallback to wrapper
-      const WrapperClass = WRAPPER_MAP[nodeType];
-      if (!WrapperClass) {
-        throw new Error(`No wrapper available for node type: ${nodeType}`);
-      }
-      
-      return WrapperClass;
+    const nodeMap = {
+      'http-request': HTTPRequestNode,
+      'slack': SlackNode,
+      'google-sheets': GoogleSheetsNode,
+      'email-send': EmailSendNode,
+      'webhook': WebhookNode
     }
+    
+    const NodeClass = nodeMap[nodeType]
+    if (!NodeClass) {
+      throw new Error(`Unknown node type: ${nodeType}`)
+    }
+    
+    console.log(`✓ Loaded enhanced node: ${nodeType}`)
+    return NodeClass
   },
 
-  // Check if real n8n nodes are available
   async checkN8nAvailability() {
-    const results = {};
-    for (const nodeType of Object.keys(NODE_PATHS)) {
-      try {
-        await this.loadNode(nodeType);
-        results[nodeType] = 'available';
-      } catch (error) {
-        results[nodeType] = 'wrapper-only';
-      }
+    return {
+      'http-request': 'enhanced-library',
+      'slack': 'enhanced-library',
+      'google-sheets': 'enhanced-library',
+      'email-send': 'enhanced-library',
+      'webhook': 'enhanced-library'
     }
-    return results;
   }
-};
+}
 
-// Enhanced exports with lazy loading
-export const HTTPRequestNode = {
-  async create(config) {
-    const NodeClass = await nodeLoader.loadNode('http-request');
-    return new NodeClass(config);
-  }
-};
-
-export const SlackNode = {
-  async create(config) {
-    const NodeClass = await nodeLoader.loadNode('slack');
-    return new NodeClass(config);
-  }
-};
-
-export const GoogleSheetsNode = {
-  async create(config) {
-    const NodeClass = await nodeLoader.loadNode('google-sheets');
-    return new NodeClass(config);
-  }
-};
-
-export const EmailSendNode = {
-  async create(config) {
-    const NodeClass = await nodeLoader.loadNode('email');
-    return new NodeClass(config);
-  }
-};
-
-export const WebhookNode = {
-  async create(config) {
-    const NodeClass = await nodeLoader.loadNode('webhook');
-    return new NodeClass(config);
-  }
-};
-
-// Main nodes object with factory methods
+// Factory functions
 export const n8nNodes = {
-  HTTPRequestNode,
-  SlackNode,
-  GoogleSheetsNode,
-  EmailSendNode,
-  WebhookNode,
-  
-  // Utility methods
   async createNode(nodeType, config) {
-    const NodeClass = await nodeLoader.loadNode(nodeType);
-    return new NodeClass(config);
+    const NodeClass = await nodeLoader.loadNode(nodeType)
+    return new NodeClass(config)
   },
 
   async getAvailableNodes() {
-    return await nodeLoader.checkN8nAvailability();
+    return await nodeLoader.checkN8nAvailability()
   }
-};
+}
 
-export default n8nNodes;
+export default n8nNodes

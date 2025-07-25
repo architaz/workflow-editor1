@@ -9,15 +9,11 @@ export default defineConfig({
     viteDevTools(),
   ],
   server: {
-    port: 3000,
-    fs: {
-      allow: ['..'] // Allow access to parent directories for submodules
-    }
+    port: 3000
   },
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-      'n8n': fileURLToPath(new URL('./lib/n8n', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
   optimizeDeps: {
@@ -25,17 +21,7 @@ export default defineConfig({
       'axios',
       'form-data',
       'jsonwebtoken',
-      'googleapis',
-      'slack-web-api-client'
-    ],
-    exclude: ['lib/n8n/**'] // Exclude n8n submodule
-  },
-  build: {
-    rollupOptions: {
-      external: (id) => {
-        // Don't bundle n8n files, treat them as external
-        return id.includes('lib/n8n/') || id.includes('/n8n/')
-      }
-    }
+      'googleapis'
+    ]
   }
 })

@@ -1,4 +1,6 @@
-import { n8nWrappers } from '@/lib/n8n-wrapper.js';
+// import { n8nWrappers } from '@/lib/n8n-wrapper.js';
+import { nodeLoader } from '@/lib/n8n-nodes.js';
+// import { createN8nExecutionContext } from '@/lib/n8n-context.js';
 
 // Custom workflow node definitions (metadata only)
 const customNodes = {
@@ -531,43 +533,39 @@ export async function executeNode(nodeInstance, inputData = null, credentials = 
   const nodeType = nodeInstance.nodeType;
   const parameters = nodeInstance.parameters || {};
   
-  // n8n nodes - use wrappers
-  const n8nNodeTypes = ['http-request', 'google-sheets', 'slack', 'email-send', 'webhook'];
+  // Use enhanced node implementations
+  const enhancedNodeTypes = ['http-request', 'google-sheets', 'slack', 'email-send', 'webhook'];
   
-  if (n8nNodeTypes.includes(nodeType)) {
+  if (enhancedNodeTypes.includes(nodeType)) {
     try {
-      // const { n8nWrappers } = await import('@/lib/n8n-wrapper.js')
-      const wrapperMap = {
-        'http-request': n8nWrappers.HTTPRequestWrapper,
-        'google-sheets': n8nWrappers.GoogleSheetsWrapper,
-        'slack': n8nWrappers.SlackWrapper,
-        'email-send': n8nWrappers.EmailSendWrapper,
-        'webhook': n8nWrappers.WebhookWrapper
-      };
+      // Load the enhanced node from n8n-nodes.js
+      const { nodeLoader } = await import('@/lib/n8n-nodes.js');
+      const NodeClass = await nodeLoader.loadNode(nodeType);
       
-      const WrapperClass = wrapperMap[nodeType];
-      if (!WrapperClass) {
-        throw new Error(`No wrapper found for ${nodeType}`);
-      }
-      
-      const wrapper = new WrapperClass({
+      // Create and execute the node
+      const nodeInstance = new NodeClass({
         parameters,
         credentials
       });
       
-      return await wrapper.execute();
+      const result = await nodeInstance.execute();
+      return {
+        success: true,
+        data: result,
+        source: 'enhanced-library'
+      };
+      
     } catch (error) {
-      console.error(`Error executing ${nodeType}:`, error);
-      // Return mock result on error
+      console.error(`Enhanced node execution failed for ${nodeType}:`, error);
       return {
         success: false,
         error: error.message,
-        mockResult: `${nodeType} would execute with parameters: ${JSON.stringify(parameters)}`
+        mockResult: `${nodeType} execution failed: ${error.message}`
       };
     }
   }
   
-  // Custom nodes - mock execution for now
+  // Custom nodes - use existing mock execution
   return executeCustomNode(nodeType, parameters, inputData);
 }
 

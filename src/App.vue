@@ -29,12 +29,12 @@
   <div v-if="sidebarCollapsed" class="p-4 pt-16">
     <div class="flex flex-col gap-3">
       <div v-for="node in miniNodeTypes" :key="node.type"
-           :draggable="true"
-           @dragstart="onNodeDragMini($event, node.type)"
-           class="w-8 h-8 rounded-lg cursor-move hover:scale-110 transition-transform flex items-center justify-center text-white text-sm"
-           :class="node.bgClass"
-           :title="node.label">
-        {{ node.icon }}
+          :draggable="true"
+          @dragstart="onNodeDragMini($event, node.type)"
+          class="w-8 h-8 rounded-lg cursor-move hover:scale-110 transition-transform flex items-center justify-center text-white text-sm"
+          :style="{ backgroundColor: getN8nNodeColor(node.type) }"
+          :title="node.label">
+        <div v-html="getN8nNodeIcon(node.type)" class="w-4 h-4"></div>
       </div>
     </div>
   </div>
@@ -110,13 +110,14 @@
 </template>
 
 <script setup>
-import { ref, markRaw, onMounted, provide } from 'vue'
+import { ref, markRaw, onMounted, provide, nextTick } from 'vue'
 import { VueFlow } from '@vue-flow/core'
 import { Controls } from '@vue-flow/controls'
 import { MiniMap } from '@vue-flow/minimap'
 import NodePalette from './components/NodePalette.vue'
 import CustomNode from './components/CustomNode.vue'
 import { getNodeConfig, getAllNodeTypes } from '@/utils/nodeRegistry'
+import { getN8nNodeIcon, getN8nNodeColor } from '@/utils/n8nIcons.js'
 
 const nodes = ref([])
 const edges = ref([])
@@ -158,10 +159,10 @@ const onDrop = (event) => {
   const nodeType = event.dataTransfer.getData('application/node-type') || 
                   event.dataTransfer.getData('text/plain')
   
-  console.log('Dropping node type:', nodeType)
+  console.log('🎯 Dropping node type:', nodeType)
   
   if (!nodeType) {
-    console.error('No node type found in drag data')
+    console.error('❌ No node type found in drag data')
     return
   }
 
@@ -176,11 +177,11 @@ const onDrop = (event) => {
     y: event.clientY - bounds.top,
   }
   
-  console.log('Drag position:', position)
+  console.log('📍 Drop position:', position)
 
   const nodeConfig = getNodeConfig(nodeType)
   if (!nodeConfig) {
-    console.error('No config found for node type:', nodeType)
+    console.error('❌ No config found for node type:', nodeType)
     return
   }
 
@@ -196,13 +197,17 @@ const onDrop = (event) => {
     },
   }
 
-  console.log('Creating new node:', newNode)
+  console.log('✅ Creating new node:', newNode)
   
   nodes.value = [...nodes.value, newNode]
-  console.log('Nodes array after add:', nodes.value.length)
+  console.log('📊 Total nodes after add:', nodes.value.length)
   
-  // Debug nodes
-  debugNodes()
+  // Force Vue Flow to update
+  nextTick(() => {
+    console.log('🔄 Vue Flow updated, checking DOM nodes...')
+    const domNodes = document.querySelectorAll('.vue-flow__node-custom')
+    console.log('🎯 DOM nodes found:', domNodes.length)
+  })
 }
 
 const onDragOver = (event) => {
@@ -424,16 +429,16 @@ const clearCanvas = () => {
 const sidebarCollapsed = ref(false)
 
 const miniNodeTypes = [
-  { type: 'get-reviews', icon: '📄', bgClass: 'bg-blue-500 hover:bg-blue-600', label: 'Get Reviews' },
-  { type: 'k-means', icon: '🔍', bgClass: 'bg-green-500 hover:bg-green-600', label: 'Apply K-means' },
-  { type: 'clusters-to-list', icon: '📊', bgClass: 'bg-yellow-500 hover:bg-yellow-600', label: 'Clusters to List' },
-  { type: 'customer-insights', icon: '🧠', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Customer Insights' },
-  { type: 'insights-to-sheets', icon: '📈', bgClass: 'bg-red-500 hover:bg-red-600', label: 'Export to Sheets' },
-  { type: 'http-request', icon: '🌐', bgClass: 'bg-indigo-500 hover:bg-indigo-600', label: 'HTTP Request' },
-  { type: 'google-sheets', icon: '📊', bgClass: 'bg-emerald-500 hover:bg-emerald-600', label: 'Google Sheets' },
-  { type: 'slack', icon: '💬', bgClass: 'bg-purple-500 hover:bg-purple-600', label: 'Slack' },
-  { type: 'email-send', icon: '✉️', bgClass: 'bg-cyan-500 hover:bg-cyan-600', label: 'Email' },
-  { type: 'webhook', icon: '🪝', bgClass: 'bg-orange-500 hover:bg-orange-600', label: 'Webhook' }
+  { type: 'get-reviews', label: 'Get Reviews' },
+  { type: 'k-means', label: 'Apply K-means' },
+  { type: 'clusters-to-list', label: 'Clusters to List' },
+  { type: 'customer-insights', label: 'Customer Insights' },
+  { type: 'insights-to-sheets', label: 'Export to Sheets' },
+  { type: 'http-request', label: 'HTTP Request' },
+  { type: 'google-sheets', label: 'Google Sheets' },
+  { type: 'slack', label: 'Slack' },
+  { type: 'email-send', label: 'Email' },
+  { type: 'webhook', label: 'Webhook' }
 ]
 
 const toggleSidebar = () => {
