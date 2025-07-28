@@ -1,6 +1,16 @@
 <template>
-  <div class="custom-node group visible-node" :class="{ executing: isExecuting, selected: isSelected }">
-    <Handle type="target" :position="Position.Top" class="handle-target" />
+  <div class="custom-node group visible-node" :class="{ executing: isExecuting, selected: isSelected, 'webhook-shape': isWebhookNode}">
+    <Handle v-if="isWebhookNode" type="target" :position="Position.Left" class="handle-target webhook-handle-left" />
+    <Handle v-else type="target" :position="Position.Top" class="handle-target" />
+
+    <!-- Webhook specific layout -->
+    <div v-if="isWebhookNode" class="webhook-content">
+      <div class="webhook-icon-container">
+        <div class="webhook-icon" :style="{ backgroundColor: iconColor }">
+          <div v-html="iconSvg" class="webhook-icon-svg"></div>
+        </div>
+      </div>
+    </div>
 
     <!-- Background gradient overlay -->
     <div class="node-backdrop"></div>
@@ -49,7 +59,13 @@
       </div>
     </div>
 
-    <Handle type="source" :position="Position.Bottom" class="handle-source" />
+    <Handle v-if="isWebhookNode" type="source" :position="Position.Right" class="handle-source webhook-handle-right" />
+    <Handle v-else type="source" :position="Position.Bottom" class="handle-source" />
+
+    <!-- Webhook name beneath the node -->
+    <div v-if="isWebhookNode" class="webhook-label">
+      {{ data.label }}
+    </div>
 
     <!-- Enhanced animated border -->
     <div class="animated-border"></div>
@@ -76,6 +92,7 @@ const props = defineProps({
 const isExecuting = ref(false)
 const progressPercent = ref(0)
 const showProgress = computed(() => isExecuting.value || props.data.showProgress)
+const isWebhookNode = computed(() => props.data.nodeType === 'webhook')
 
 const getNodeTypeLabel = (nodeType) => {
   const labels = {
@@ -625,5 +642,105 @@ defineExpose({
   .metric-value {
     color: #f1f5f9;
   }
+
+  /* Webhook asymmetric curved shape */
+  .webhook-shape {
+    border-radius: 25% 10% 10% 25% !important; /* 25% on opposite corners, 10% on others */
+    min-width: 100px !important;
+    min-height: 80px !important;
+    max-width: 100px !important;
+    max-height: 80px !important;
+    width: 100px !important;
+    height: 80px !important;
+    padding: 0 !important;
+    position: relative;
+    /* clip-path: polygon(0% 0%, 75% 0%, 85% 10%, 85% 90%, 75% 100%, 0% 100%);*/
+  }
+
+  .webhook-content {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Align to left side */
+    height: 100%;
+    width: 100%;
+    /* padding-left: 8px; Push content slightly left */
+  }
+
+  .webhook-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .webhook-icon {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .webhook-icon-svg {
+    width: 32px;
+    height: 32px;
+    color: white !important;
+    fill: white !important;
+  }
+
+  .webhook-label {
+    position: absolute;
+    top: 100%;
+    left: 40%;
+    transform: translateX(-50%);
+    margin-top: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+    text-align: center;
+    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 4px 8px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+  }
+
+  .webhook-handle-left {
+    left: -9px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+
+  .webhook-handle-right {
+    right: -9px !important; /* Back to edge */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    left: auto !important; /* Override any left positioning */
+  }
+
+  /* Force the right handle to the actual right edge of the node */
+  .webhook-shape .handle-source {
+    right: -9px !important;
+    left: auto !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+
+  .webhook-shape:hover .webhook-icon {
+    transform: scale(1.1);
+    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.15);
+  }
+
+  .webhook-shape:hover .webhook-label {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateX(-50%) translateY(-2px);
+  }
+
 }
 </style>
