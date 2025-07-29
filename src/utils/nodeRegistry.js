@@ -1,7 +1,3 @@
-// import { n8nWrappers } from '@/lib/n8n-wrapper.js';
-import { nodeLoader } from '@/lib/n8n-nodes.js';
-// import { createN8nExecutionContext } from '@/lib/n8n-context.js';
-
 // Custom workflow node definitions (metadata only)
 const customNodes = {
   'get-reviews': {
@@ -663,4 +659,3 @@ export function getNodeConfig(nodeType) {
 }
 
 export default nodeRegistry;
-// export { executeNode }

@@ -26,15 +26,15 @@
 </div>
   
   <!-- Collapsed state mini icons -->
-  <div v-if="sidebarCollapsed" class="p-4 pt-16">
-    <div class="flex flex-col gap-3">
+  <div v-if="sidebarCollapsed" class="p-4 pt-16 h-full flex flex-col justify-center">
+    <div class="flex flex-col gap-7 items-center">
       <div v-for="node in miniNodeTypes" :key="node.type"
           :draggable="true"
           @dragstart="onNodeDragMini($event, node.type)"
-          class="w-8 h-8 rounded-lg cursor-move hover:scale-110 transition-transform flex items-center justify-center text-white text-sm"
+          class="w-10 h-10 rounded-lg cursor-move hover:scale-110 transition-transform flex items-center justify-center text-white text-sm"
           :style="{ backgroundColor: getN8nNodeColor(node.type) }"
           :title="node.label">
-        <div v-html="getN8nNodeIcon(node.type)" class="w-4 h-4"></div>
+        <div v-html="getN8nNodeIcon(node.type)" class="w-6 h-6"></div>
       </div>
     </div>
   </div>
@@ -42,8 +42,6 @@
 
   <!-- Main canvas area -->
       <div class="canvas-container flex-1 relative">
-        <!-- @drop = "onDrop"
-        @dragover.prevent = "onDragOver"> -->
         <!-- Controls moved to top center -->
         <div class="controls absolute top-6 left-1/2 transform -translate-x-1/2 z-10 flex gap-5 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-xl shadow-lg border border-white/20">
           <button
@@ -132,8 +130,7 @@ const nodeTypes = {
   custom: markRaw(CustomNode),
 }
 
-// Node counter for unique IDs
-let nodeId = 0
+let nodeId = 0      // Node counter for unique IDs
 
 // Provide credentials to all nodes
 provide('credentials', {
@@ -314,8 +311,7 @@ const runWorkflow = async () => {
     return
   }
 
-  // Debug refs
-  debugNodeRefs()
+  debugNodeRefs()     // Debug refs
 
   isExecuting.value = true
   executionOutput.value = '🚀 Starting workflow execution...\n\n'
@@ -476,14 +472,12 @@ const getCredentialsForNode = (nodeType) => {
 </script>
 
 <style>
-/* Import Tailwind and Vue Flow styles */
 @import 'tailwindcss';
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 @import '@vue-flow/controls/dist/style.css';
 @import '@vue-flow/minimap/dist/style.css';
 
-/* Reset and base styles */
 * {
   margin: 0;
   padding: 0;
@@ -536,7 +530,7 @@ body {
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   padding: 16px;
-  min-width: 180px;
+  min-width: 100px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: all 0.2s ease;
 }
@@ -608,6 +602,7 @@ body {
   height: 12px;
   border-radius: 50%;
   transition: all 0.2s ease;
+  z-index: 100000;
 }
 
 .vue-flow__handle:hover {
@@ -673,7 +668,7 @@ body {
   border: 2px solid #e2e8f0 !important;
   border-radius: 12px !important;
   padding: 16px !important;
-  min-width: 180px !important;
+  min-width: 150px !important;
   min-height: 80px !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
   opacity: 1 !important;

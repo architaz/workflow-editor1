@@ -1,44 +1,21 @@
 <template>
-  <div class="custom-node group visible-node" :class="{ executing: isExecuting, selected: isSelected, 'webhook-shape': isWebhookNode}">
-    <Handle v-if="isWebhookNode" type="target" :position="Position.Left" class="handle-target webhook-handle-left" />
-    <Handle v-else type="target" :position="Position.Top" class="handle-target" />
-
-    <!-- Webhook specific layout -->
-    <div v-if="isWebhookNode" class="webhook-content">
-      <div class="webhook-icon-container">
-        <div class="webhook-icon" :style="{ backgroundColor: iconColor }">
-          <div v-html="iconSvg" class="webhook-icon-svg"></div>
-        </div>
-      </div>
-    </div>
+  <div class="custom-node group visible-node" :class="{ executing: isExecuting, selected: isSelected }">
+    <Handle type="target" :position="Position.Left" class="handle-target" />
 
     <!-- Background gradient overlay -->
     <div class="node-backdrop"></div>
 
     <div class="node-content">
-      <div class="node-header">
-        <div class="node-icon-container">
-          <div 
-            class="node-icon w-10 h-10 rounded-lg shadow-md flex items-center justify-center text-white transition-all duration-300"
-            :style="{ backgroundColor: iconColor }"
-          >
-            <div 
-              v-html="iconSvg" 
-              class="w-6 h-6"
-            ></div>
-          </div>
-          <div class="icon-glow shadow-lg"></div>
-        </div>
-        <div class="node-status">
-          <div class="status-dot" :class="statusClass"></div>
-          <div class="status-ring"></div>
-        </div>
+      <div class="node-status">
+        <div class="status-dot" :class="statusClass"></div>
+        <div class="status-ring"></div>
       </div>
-
-      <div class="node-body">
-        <div class="node-label">{{ data.label }}</div>
-        <div class="node-type">{{ getNodeTypeLabel(data.nodeType) }}</div>
-        <div class="node-description" v-if="data.description">{{ data.description }}</div>
+      
+      <div class="node-icon-container">
+        <div class="node-icon" :style="{ backgroundColor: iconColor }">
+          <div v-html="iconSvg" class="w-6 h-6 icon-white"></div>
+        </div>
+        <div class="icon-glow shadow-lg"></div>
       </div>
 
       <!-- Enhanced progress bar -->
@@ -47,23 +24,13 @@
           <div class="progress-bar" :style="{ width: progressPercent + '%' }"></div>
           <div class="progress-shimmer"></div>
         </div>
-        <div class="progress-text">{{ progressPercent }}%</div>
-      </div>
-
-      <!-- Node metrics/stats -->
-      <div class="node-metrics" v-if="data.metrics">
-        <div class="metric" v-for="(value, key) in data.metrics" :key="key">
-          <span class="metric-label">{{ key }}</span>
-          <span class="metric-value">{{ value }}</span>
-        </div>
       </div>
     </div>
 
-    <Handle v-if="isWebhookNode" type="source" :position="Position.Right" class="handle-source webhook-handle-right" />
-    <Handle v-else type="source" :position="Position.Bottom" class="handle-source" />
+    <Handle type="source" :position="Position.Right" class="handle-source" />
 
-    <!-- Webhook name beneath the node -->
-    <div v-if="isWebhookNode" class="webhook-label">
+    <!-- Node label beneath the node -->
+    <div class="node-label-external">
       {{ data.label }}
     </div>
 
@@ -92,7 +59,6 @@ const props = defineProps({
 const isExecuting = ref(false)
 const progressPercent = ref(0)
 const showProgress = computed(() => isExecuting.value || props.data.showProgress)
-const isWebhookNode = computed(() => props.data.nodeType === 'webhook')
 
 const getNodeTypeLabel = (nodeType) => {
   const labels = {
@@ -192,19 +158,19 @@ defineExpose({
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 20px;
-  padding: 0;
-  min-width: 220px;
-  max-width: 300px;
+  border-radius: 25% 10% 10% 25%;
+  padding: 10px;
+  min-width: 100px;
+  max-width: 100px;
+  width: 100px;
+  height: 75px;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 2px 4px -1px rgba(0, 0, 0, 0.03),
     0 0 0 1px rgba(255, 255, 255, 0.1);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+  overflow: visible;
   transform-origin: center;
-  /* Force visibility */
-  /* opacity: 1 !important; */
   visibility: visible !important;
   display: block !important;
 }
@@ -247,35 +213,44 @@ defineExpose({
 .custom-node.executing {
   border-color: rgba(245, 158, 11, 0.8);
   animation: executeGlow 2s ease-in-out infinite alternate;
+  transform: scale(1.15);
+  width: 115px;
+  height: 86px;
 }
 
 .node-content {
   position: relative;
   z-index: 1;
-}
-
-.node-header {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 16px 16px 10px 16px;
+  justify-content: center;
+}
+
+.node-status {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 10;
 }
 
 .node-icon-container {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 .node-icon {
-  width: 40px;           
-  height: 40px;           
-  font-size: 15px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06),
@@ -283,7 +258,16 @@ defineExpose({
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 2;
-  border-radius: 25%;
+}
+
+.icon-white {
+  color: white !important;
+  fill: white !important;
+}
+
+.icon-white svg {
+  color: white !important;
+  fill: white !important;
 }
 
 .icon-glow {
@@ -292,7 +276,7 @@ defineExpose({
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: 14px;
+  border-radius: 8px;
   background: inherit;
   filter: blur(8px);
   opacity: 0;
@@ -312,15 +296,9 @@ defineExpose({
   opacity: 0.3;
 }
 
-.node-status {
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   position: relative;
   z-index: 2;
@@ -329,8 +307,8 @@ defineExpose({
 
 .status-ring {
   position: absolute;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   border: 2px solid transparent;
   transition: all 0.3s ease;
@@ -355,51 +333,20 @@ defineExpose({
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
 }
 
-.node-body {
-  padding: 0 16px 16px 16px;
-}
-
-.node-label {
-  font-weight: 700;
-  font-size: 16px;
-  color: #1e293b;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-  margin-bottom: 6px;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-}
-
-.node-type {
-  font-size: 11px;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.node-description {
-  font-size: 12px;
-  color: #94a3b8;
-  font-weight: 500;
-  line-height: 1.4;
-  margin-top: 8px;
-}
-
 .progress-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 0 20px 16px 20px;
+  position: absolute;
+  bottom: 2px;
+  left: 4px;
+  right: 4px;
+  padding: 0;
+  margin: 0;
 }
 
 .progress-track {
-  flex: 1;
   position: relative;
-  height: 4px;
+  height: 2px;
   background: rgba(226, 232, 240, 0.8);
-  border-radius: 2px;
+  border-radius: 1px;
   overflow: hidden;
 }
 
@@ -408,7 +355,7 @@ defineExpose({
   background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6);
   background-size: 200% 100%;
   animation: progressShimmer 2s linear infinite;
-  border-radius: 2px;
+  border-radius: 1px;
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -422,39 +369,27 @@ defineExpose({
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
-.progress-text {
-  font-size: 11px;
-  font-weight: 600;
-  color: #94a3b8;
-  min-width: 32px;
-  text-align: right;
-}
-
-.node-metrics {
-  display: flex;
-  gap: 12px;
+.node-label-external {
+  position: absolute;
+  top: 89%;
+  left: 50%;
+  transform: translateX(-50%);
   margin-top: 12px;
-  padding: 0 20px 16px 20px;
-}
-
-.metric {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.metric-label {
-  font-size: 10px;
-  color: #94a3b8;;
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-.metric-value {
   font-size: 12px;
   font-weight: 600;
-  color: #f1f5f9;
+  color: #1e293b;
+  text-align: center;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  z-index: 100000;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  pointer-events: none;  /* Add this line */
 }
 
 .animated-border {
@@ -463,7 +398,7 @@ defineExpose({
   left: -1px;
   right: -1px;
   bottom: -1px;
-  border-radius: 21px;
+  border-radius: 25% 10% 10% 25%;
   background: linear-gradient(
     45deg,
     transparent,
@@ -489,7 +424,7 @@ defineExpose({
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: 20px;
+  border-radius: 25% 10% 10% 25%;
   background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1), transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -500,13 +435,21 @@ defineExpose({
   opacity: 1;
 }
 
+.custom-node:hover .node-label-external {
+  background: rgba(255, 255, 255, 0.263);
+  color: #1e293b;
+  font-weight: 750;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateX(-50%) translateY(-2px);
+}
+
 /* Enhanced handle styling */
 .handle-target,
 .handle-source {
   background: linear-gradient(135deg, #3b82f6, #6366f1) !important;
   border: 3px solid rgba(255, 255, 255, 0.9) !important;
-  width: 18px !important;
-  height: 18px !important;
+  width: 14px !important;
+  height: 14px !important;
   border-radius: 50% !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   box-shadow:
@@ -520,23 +463,24 @@ defineExpose({
 .handle-target:hover,
 .handle-source:hover {
   background: linear-gradient(135deg, #1d4ed8, #4f46e5) !important;
-  transform: scale(1.5) !important;
+  transform: scale(1.3) !important;
   box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.15),
     0 0 0 4px rgba(59, 130, 246, 0.3) !important;
-    z-index: 200 !important;
+  z-index: 200 !important;
 }
 
 .handle-target {
-  top: -9px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
+  left: -7px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
 }
 
 .handle-source {
-  bottom: -9px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
+  right: -7px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  left: auto !important;
 }
 
 :deep(.vue-flow__handle) {
@@ -555,14 +499,6 @@ defineExpose({
   background: #1d4ed8 !important;
   transform: scale(1.3) !important;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
-}
-
-:deep(.vue-flow__handle-top) {
-  top: -7px !important;
-}
-
-:deep(.vue-flow__handle-bottom) {
-  bottom: -7px !important;
 }
 
 /* Animations */
@@ -626,121 +562,13 @@ defineExpose({
     );
   }
 
-  .node-label {
+  .node-label-external {
     color: #f1f5f9;
-  }
-
-  .node-type,
-  .node-description {
-    color: #94a3b8;
+    background: rgba(15, 23, 42, 0.95);
   }
 
   .progress-track {
     background: rgba(51, 65, 85, 0.8);
   }
-
-  .metric-value {
-    color: #f1f5f9;
-  }
-
-  /* Webhook asymmetric curved shape */
-  .webhook-shape {
-    border-radius: 25% 10% 10% 25% !important; /* 25% on opposite corners, 10% on others */
-    min-width: 100px !important;
-    min-height: 80px !important;
-    max-width: 100px !important;
-    max-height: 80px !important;
-    width: 100px !important;
-    height: 80px !important;
-    padding: 0 !important;
-    position: relative;
-    /* clip-path: polygon(0% 0%, 75% 0%, 85% 10%, 85% 90%, 75% 100%, 0% 100%);*/
-  }
-
-  .webhook-content {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start; /* Align to left side */
-    height: 100%;
-    width: 100%;
-    /* padding-left: 8px; Push content slightly left */
-  }
-
-  .webhook-icon-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-  }
-
-  .webhook-icon {
-    width: 48px !important;
-    height: 48px !important;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-  }
-
-  .webhook-icon-svg {
-    width: 32px;
-    height: 32px;
-    color: white !important;
-    fill: white !important;
-  }
-
-  .webhook-label {
-    position: absolute;
-    top: 100%;
-    left: 40%;
-    transform: translateX(-50%);
-    margin-top: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #1e293b;
-    text-align: center;
-    white-space: nowrap;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 4px 8px;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    z-index: 10;
-  }
-
-  .webhook-handle-left {
-    left: -9px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-  }
-
-  .webhook-handle-right {
-    right: -9px !important; /* Back to edge */
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    left: auto !important; /* Override any left positioning */
-  }
-
-  /* Force the right handle to the actual right edge of the node */
-  .webhook-shape .handle-source {
-    right: -9px !important;
-    left: auto !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-  }
-
-  .webhook-shape:hover .webhook-icon {
-    transform: scale(1.1);
-    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.15);
-  }
-
-  .webhook-shape:hover .webhook-label {
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    transform: translateX(-50%) translateY(-2px);
-  }
-
 }
 </style>
