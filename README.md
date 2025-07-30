@@ -1,336 +1,340 @@
-# Visual Workflow Editor
+# 🚀 Visual Workflow Editor
 
-A Vue 3-based visual workflow editor that allows users to create, edit, and execute custom workflows using a drag-and-drop interface. Built with Vue Flow, Tailwind CSS, and integrates with various external services.
+> **A modern Vue.js application for building and executing visual workflows with drag-and-drop functionality**
 
-## 🚀 Features
+A professional-grade visual workflow editor built with Vue 3, Vue Flow, and Tailwind CSS. This application combines custom workflow nodes with integrated n8n automation nodes, enabling users to create sophisticated data processing workflows through an intuitive visual interface with real-time execution monitoring.
 
-- **Visual Workflow Builder**: Drag-and-drop interface for creating workflows
-- **Custom Node Types**: Support for various node types including data processing, AI analysis, and integrations
-- **Real-time Execution**: Execute workflows with live progress tracking
-- **Service Integrations**: Built-in support for Slack, Google Sheets, HTTP requests, and email
-- **Responsive Design**: Modern, responsive UI with dark mode support
-- **Export/Import**: Save and load workflow configurations
+*![Screenshot of landing page](image.png) Main application interface showing the sidebar, canvas with workflow nodes and output panel*
 
-## 📋 Prerequisites
+---
 
-- **Node.js** 18.0 or higher
-- **npm** or **yarn** package manager
-- **Git** for cloning the repository
+## ✨ Key Features
 
-## 🛠️ Installation
+- **🎨 Visual Workflow Builder** - Drag-and-drop interface for creating complex workflows
+- **🔗 n8n Integration** - Native support for industry-standard n8n automation nodes
+- **⚡ Real-time Execution** - Live progress tracking with animated status indicators  
+- **🌐 Service Integrations** - Production-ready APIs for Slack, Google Sheets, HTTP, and SMTP
+- **🧠 Custom Analytics** - Purpose-built customer insights and ML clustering nodes
+- **📊 Advanced Processing** - K-means clustering, data transformation, and intelligent export
+- **🌙 Modern UI/UX** - Responsive design with smooth animations and professional styling
+- **⚙️ Dual Node System** - Both custom workflow nodes and standard n8n automation nodes
 
-### 1. Clone the Repository
+*<video controls src="20250730-0752-28.2321277.mp4" title="Demo Video"></video>* *Demo showing: dragging nodes → connecting them → running workflow → viewing results*
+
+---
+
+## 🏗️ Architecture Overview
+
+### Frontend Stack
+- **Vue 3** - Progressive JavaScript framework with Composition API
+- **Vue Flow** - Advanced flow-based workflow editor
+- **Tailwind CSS** - Utility-first CSS framework for modern styling
+- **Vite** - Next-generation frontend build tool
+
+### Node System Architecture
+- **Custom Workflow Nodes** - Specialized data processing and analysis components
+- **Integrated n8n Nodes** - Production-ready automation building blocks with full compatibility
+- **Hybrid Execution Engine** - Seamless integration between custom and n8n node types
+- **Real-time Processing** - Asynchronous workflow execution with comprehensive progress tracking
+
+### Integration Layer
+- **Google APIs** - Sheets and Drive integration via service account authentication
+- **Slack Web API** - Team notifications and messaging
+- **SMTP Email** - Automated email delivery
+- **HTTP Client** - RESTful API communications
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- **Node.js** 18+ and npm/yarn
+- **Git** for version control
+
+### Installation
 
 ```bash
+# Clone the repository
 git clone <repository-url>
 cd workflow-editor-claude
-```
 
-### 2. Initialize n8n Submodule (Optional)
-
-The project includes n8n as a git submodule for real node integration:
-
-```bash
-git submodule init
-git submodule update
-```
-
-**Note**: If you encounter issues with the submodule, the project will work with mock implementations.
-
-### 3. Install Dependencies
-
-```bash
+# Install dependencies
 npm install
+
+# Start development server
+npm run dev
 ```
 
-Or using yarn:
+Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+### Production Build
 
 ```bash
-yarn install
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-## ⚙️ Configuration
+---
 
-### Environment Variables
+## ⚙️ Environment Configuration
 
-Create a `.env` file in the project root and configure the following variables:
+Create a `.env` file in the project root:
 
 ```env
 # Slack Integration
 VITE_SLACK_TOKEN=xoxb-your-slack-bot-token
 
-# Google Services
-VITE_GOOGLE_CLIENT_EMAIL=your-service-account@project.iam.gserviceaccount.com
-VITE_GOOGLE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nYour-Private-Key\n-----END PRIVATE KEY-----
-VITE_GOOGLE_ACCESS_TOKEN=your-google-access-token
+# Google Services (Service Account)
+VITE_GOOGLE_CLIENT_EMAIL=service-account@project.iam.gserviceaccount.com
+VITE_GOOGLE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----
+VITE_GOOGLE_ACCESS_TOKEN=your-access-token
 
-# Email Configuration (SMTP)
+# SMTP Configuration
 VITE_SMTP_USER=your-email@gmail.com
 VITE_SMTP_PASSWORD=your-app-password
 VITE_SMTP_HOST=smtp.gmail.com
 VITE_SMTP_PORT=587
 ```
 
-### Service Setup Instructions
+<details>
+<summary>📋 <strong>Service Setup Guide</strong></summary>
 
-#### Slack Integration
+### Slack Configuration
+1. Create a Slack app at [api.slack.com](https://api.slack.com/apps)
+2. Add bot scopes: `chat:write`, `chat:write.public`
+3. Install app to workspace and copy Bot User OAuth Token
 
-1. **Create a Slack App**:
-   - Go to [Slack API](https://api.slack.com/apps)
-   - Click "Create New App" → "From scratch"
-   - Choose your workspace
+### Google Sheets Setup
+1. Create project in [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable Google Sheets API and Google Drive API
+3. Create service account and download JSON credentials
+4. Extract `client_email` and `private_key` for environment variables
 
-2. **Configure Bot Token**:
-   - Go to "OAuth & Permissions"
-   - Add these scopes under "Bot Token Scopes":
-     - `chat:write`
-     - `chat:write.public`
-   - Install the app to your workspace
-   - Copy the "Bot User OAuth Token" to `VITE_SLACK_TOKEN`
+### Email Configuration
+1. Enable 2-factor authentication on Gmail
+2. Generate app-specific password in Google Account settings
+3. Use app password (not regular password) in SMTP configuration
 
-#### Google Sheets Integration
-
-1. **Create a Google Cloud Project**:
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project or select existing
-
-2. **Enable APIs**:
-   - Enable "Google Sheets API"
-   - Enable "Google Drive API"
-
-3. **Create Service Account**:
-   - Go to "IAM & Admin" → "Service Accounts"
-   - Create a new service account
-   - Download the JSON key file
-   - Extract `client_email` and `private_key` to environment variables
-
-4. **Generate Access Token** (Optional):
-   - Use OAuth 2.0 playground or generate programmatically
-   - Add to `VITE_GOOGLE_ACCESS_TOKEN`
-
-#### Email Configuration
-
-For Gmail SMTP:
-
-1. **Enable 2-Factor Authentication**
-2. **Generate App Password**:
-   - Go to Google Account settings
-   - Security → 2-Step Verification → App passwords
-   - Generate password for "Mail"
-   - Use this password in `VITE_SMTP_PASSWORD`
-
-## 🚀 Development
-
-### Start Development Server
-
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:3000`
-
-### Build for Production
-
-```bash
-npm run build
-```
-
-### Preview Production Build
-
-```bash
-npm run preview
-```
-
-### Code Formatting
-
-```bash
-npm run format
-```
-
-## 📁 Project Structure
-
-```
-workflow-editor-claude/
-├── src/
-│   ├── components/           # Vue components
-│   │   ├── CustomNode.vue   # Individual workflow node component
-│   │   ├── NodePalette.vue  # Draggable node palette
-│   │   └── NodeConfiguration.vue
-│   ├── lib/                 # Core libraries
-│   │   ├── n8n-nodes.js    # n8n node integration
-│   │   ├── n8n-wrapper.js  # Mock implementations
-│   │   └── node-libraries.js
-│   ├── utils/               # Utility functions
-│   │   └── nodeRegistry.js  # Node definitions and registry
-│   ├── assets/              # Static assets
-│   └── App.vue              # Main application component
-├── lib/n8n/                # n8n submodule (optional)
-├── .env                     # Environment configuration
-├── package.json
-└── README.md
-```
-
-## 🎯 Usage
-
-### Creating a Workflow
-
-1. **Start the Application**: Run `npm run dev`
-2. **Add Nodes**: Drag nodes from the left palette to the canvas
-3. **Connect Nodes**: Drag from output handles (bottom) to input handles (top)
-4. **Configure Nodes**: Click on nodes to configure their parameters
-5. **Execute Workflow**: Click "Run Flow" to execute your workflow
-
-### Available Node Types
-
-#### Data Sources
-- **Get Reviews**: Fetch customer reviews from various platforms
-- **HTTP Request**: Make API calls to external services
-- **Webhook**: Receive data from external services
-
-#### Processing
-- **K-Means Clustering**: Apply machine learning clustering
-- **Clusters to List**: Transform clustering results
-- **Customer Insights**: AI-powered analysis
-
-#### Integrations
-- **Google Sheets**: Read/write spreadsheet data
-- **Slack**: Send notifications to channels
-- **Email Send**: Send emails via SMTP
-
-### Example Workflow
-
-1. **Get Reviews** → Fetch customer data
-2. **K-Means** → Cluster reviews by sentiment
-3. **Customer Insights** → Generate AI insights
-4. **Google Sheets** → Export results
-5. **Slack** → Notify team
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-#### Node Visibility Problems
-If nodes aren't showing up on the canvas:
-```css
-/* Check if nodes have proper CSS visibility */
-.vue-flow__node-custom {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-```
-
-#### n8n Integration Issues
-If real n8n nodes fail to load:
-- The project automatically falls back to mock implementations
-- Check console for specific error messages
-- Ensure the n8n submodule is properly initialized
-
-#### Environment Variables Not Loading
-- Ensure `.env` file is in the project root
-- Restart the development server after changes
-- Variables must be prefixed with `VITE_`
-
-#### API Integration Failures
-- Check your API credentials and tokens
-- Verify network connectivity
-- Review service-specific setup instructions
-
-### Debug Mode
-
-Enable debug logging by adding to your `.env`:
-```env
-VITE_DEBUG=true
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/new-feature`
-3. Commit changes: `git commit -am 'Add new feature'`
-4. Push to branch: `git push origin feature/new-feature`
-5. Submit a pull request
-
-### Development Guidelines
-
-- Use Vue 3 Composition API
-- Follow ESLint and Prettier configurations
-- Add unit tests for new components
-- Update documentation for new features
-
-## 📚 Dependencies
-
-### Core Dependencies
-- **Vue 3**: Progressive JavaScript framework
-- **@vue-flow/core**: Flow-based workflow editor
-- **Tailwind CSS**: Utility-first CSS framework
-- **Element Plus**: Vue 3 UI library
-
-### Integration Libraries
-- **axios**: HTTP client
-- **googleapis**: Google APIs client
-- **slack-web-api-client**: Slack integration
-- **jsonwebtoken**: JWT handling
-
-## 🚀 Deployment
-
-### Environment Setup
-
-For production deployment:
-
-1. **Build the project**:
-   ```bash
-   npm run build
-   ```
-
-2. **Configure environment variables** on your hosting platform
-
-3. **Deploy the `dist` folder** to your web server
-
-### Hosting Platforms
-
-#### Vercel
-```bash
-npm install -g vercel
-vercel --prod
-```
-
-#### Netlify
-```bash
-npm install -g netlify-cli
-netlify deploy --prod --dir dist
-```
-
-#### Docker
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-RUN npm run build
-EXPOSE 3000
-CMD ["npm", "run", "preview"]
-```
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-- **Issues**: Report bugs on GitHub Issues
-- **Documentation**: Check the `/docs` folder for detailed guides
-- **Community**: Join our Discord server for discussions
-
-## 🗺️ Roadmap
-
-- [ ] Real-time collaboration
-- [ ] Advanced node templates
-- [ ] Workflow versioning
-- [ ] Plugin system
-- [ ] Performance optimizations
-- [ ] Mobile responsive improvements
+</details>
 
 ---
 
-**Happy workflow building! 🎉**
+## 📊 Node System Overview
+
+This application features a **dual-node architecture** combining custom-built workflow components with integrated n8n automation nodes:
+
+### 🎯 Custom Workflow Nodes
+*Purpose-built for data analysis and customer insights*
+
+| Node | Type | Purpose | Key Features |
+|------|------|---------|--------------|
+| **Get Reviews** | Data Source | Fetch customer feedback | Multi-platform support, rate limiting |
+| **K-Means Clustering** | ML Algorithm | Segment customer data | Configurable clusters, feature selection |
+| **Customer Insights** | AI Analysis | Generate business intelligence | Sentiment analysis, topic modeling |
+| **Clusters to List** | Transform | Organize clustering results | Multiple grouping options |
+| **Export to Sheets** | Output | Formatted data export | Custom sheet naming, summary generation |
+
+### 🔧 Integrated n8n Nodes  
+*Production-ready automation components with full API integration*
+
+| Node | API Integration | Purpose | Authentication |
+|------|----------------|---------|---------------|
+| **HTTP Request** | REST APIs | External service communication | Bearer, Basic, Custom headers |
+| **Google Sheets** | Google Workspace API | Spreadsheet operations | Service Account, OAuth2 |
+| **Slack** | Slack Web API | Team notifications | Bot tokens, Webhooks |
+| **Email Send** | SMTP Protocol | Automated messaging | App passwords, TLS/SSL |
+| **Webhook** | HTTP Server | Data ingestion | Custom endpoints, validation |
+
+<div>
+
+**Node System Overview**
+
+<table>
+  <tr>
+    <td align="center" style="padding: 0 20px;">
+      <img src="image-2.png" style="width: 150px;" alt="Custom Nodes"><br>
+      <em>Custom Nodes</em><br>
+      <small>Get Reviews, Apply K-Means, Cluster to List,<br>Customer Insights, Export to Sheets</small>
+    </td>
+    <td align="center" style="padding: 0 20px;">
+      <img src="image-3.png" style="width: 150px;" alt="n8n Nodes"><br>
+      <em>n8n Nodes</em><br>
+      <small>HTTP Request, Google Sheets,<br>Slack, Email, Webhook</small>
+    </td>
+  </tr>
+</table>
+
+**Mixed Workflow Example**
+
+<img src="image-1.png" style="width: 350px;" alt="Workflow">
+
+*Complete workflow showing both node types connected together*
+
+</div>
+
+---
+
+## 🎯 Usage Examples
+
+### Customer Analytics Workflow
+*Combining custom analytics nodes with n8n integrations*
+
+```mermaid
+graph LR
+    A[Get Reviews<br/>Custom] --> B[K-Means Clustering<br/>Custom]
+    B --> C[Customer Insights<br/>Custom]
+    C --> D[Google Sheets<br/>n8n]
+    D --> E[Slack Notification<br/>n8n]
+```
+
+1. **Data Collection** - Custom node fetches reviews with intelligent parsing
+2. **ML Processing** - Purpose-built K-means clustering for customer segmentation  
+3. **AI Analysis** - Custom insights generation with sentiment and topic analysis
+4. **Production Export** - n8n Google Sheets node with full API integration
+5. **Team Notification** - n8n Slack node with rich message formatting
+
+### API Automation Pipeline
+*Pure n8n node workflow for system integration*
+
+```mermaid
+graph LR
+    A[Webhook<br/>n8n] --> B[HTTP Request<br/>n8n]
+    B --> C[Email Send<br/>n8n]
+```
+
+1. **Trigger** - n8n webhook receiver with validation and parsing
+2. **API Call** - Production HTTP client with authentication and retry logic
+3. **Notify** - SMTP email delivery with HTML formatting and attachments
+
+---
+
+## 🗂️ Project Structure
+
+```
+src/
+├── components/              # Vue components
+│   ├── CustomNode.vue      # Individual workflow nodes
+│   ├── NodePalette.vue     # Draggable node library
+│   └── NodeConfiguration.vue
+├── lib/                    # Core libraries and integrations
+│   ├── n8n-nodes.js       # Production n8n node implementations
+│   ├── n8n-wrapper.js     # n8n compatibility layer
+│   └── node-libraries.js  # Service integration logic (Google, Slack, SMTP)
+├── utils/                  # Utility functions
+│   ├── nodeRegistry.js    # Node definitions and metadata
+│   └── n8nIcons.js        # Icon and styling system
+└── App.vue                 # Main application component
+```
+
+---
+
+## 🔧 Development
+
+### Available Scripts
+
+```bash
+npm run dev      # Start development server with hot reload
+npm run build    # Create production build
+npm run preview  # Preview production build locally
+npm run format   # Format code with Prettier
+```
+
+### Key Development Features
+
+- **Hot Module Replacement** - Instant updates during development
+- **Vue DevTools** - Enhanced debugging and component inspection
+- **ESLint & Prettier** - Code quality and formatting enforcement
+- **TypeScript Support** - Optional static typing for enhanced development
+
+---
+
+## 🚀 Deployment
+
+### Production Deployment
+
+```bash
+# Build the application
+npm run build
+
+# Deploy the dist/ folder to your hosting platform
+```
+
+### Supported Platforms
+
+- **Vercel**: `npm i -g vercel && vercel --prod`
+- **Netlify**: `npm i -g netlify-cli && netlify deploy --prod --dir dist`
+- **AWS S3**: Static hosting with CloudFront distribution
+- **Docker**: Containerized deployment with nginx
+
+---
+
+## 🛠️ Technical Implementation
+
+### Node Execution Architecture
+- **Dual Execution Paths** - Separate handlers for custom nodes and n8n integrations
+- **Production APIs** - Real Google Sheets, Slack, and SMTP implementations
+- **Error Handling** - Comprehensive error recovery with fallback simulation modes
+- **Progress Tracking** - Real-time status updates with visual feedback across node types
+- **State Management** - Reactive data flow using Vue 3 Composition API
+
+### Visual Editor Features
+- **Drag & Drop** - Intuitive node placement and connection
+- **Real-time Updates** - Live canvas updates and synchronization
+- **Responsive Design** - Optimized for desktop and tablet workflows
+- **Accessibility** - WCAG 2.1 compliant interface design
+
+### Performance Optimizations
+- **Lazy Loading** - On-demand component and library loading
+- **Virtual Scrolling** - Efficient handling of large node collections
+- **Memory Management** - Automatic cleanup and garbage collection
+- **Bundle Splitting** - Optimized loading for production deployments
+
+---
+
+## 📈 Future Enhancements
+
+- [ ] **Advanced n8n Integration** - Support for additional n8n community nodes
+- [ ] **Custom Node SDK** - Framework for building domain-specific workflow components  
+- [ ] **Workflow Templates** - Pre-built templates combining custom and n8n nodes
+- [ ] **Performance Analytics** - Execution metrics for both node types
+- [ ] **Enterprise Features** - Advanced authentication, audit logs, and governance
+- [ ] **Cloud Deployment** - Managed hosting with auto-scaling capabilities
+
+---
+
+## 🤝 Contributing
+
+This project demonstrates modern workflow automation techniques combining custom business logic with industry-standard n8n integrations:
+
+1. **Architecture Review** - Examine the dual-node system design and execution patterns
+2. **Integration Testing** - Test both custom analytics and n8n automation workflows  
+3. **API Functionality** - Verify production integrations with Google, Slack, and SMTP services
+4. **Performance Assessment** - Evaluate execution efficiency across different node types
+
+---
+
+## 📄 License & Acknowledgments
+
+- **Framework**: Vue.js - Progressive JavaScript Framework
+- **Flow Editor**: Vue Flow - Advanced workflow visualization
+- **Automation**: n8n - Workflow automation platform integration
+- **Styling**: Tailwind CSS - Utility-first CSS framework
+- **Icons**: n8n-compatible SVG icon system with custom extensions
+- **APIs**: Production integrations with Google Workspace, Slack, and SMTP protocols
+
+---
+
+<div align="center">
+
+**A demonstration of modern workflow automation architecture**
+
+*Combining custom business logic with industry-standard automation tools*
+
+---
+
+**📧 Contact**: archita.0240@gmail.com | **🔗 LinkedIn**: [Archita Aggarwal](https://www.linkedin.com/in/archita-aggarwal34/)
+
+</div>

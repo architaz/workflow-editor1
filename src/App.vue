@@ -17,8 +17,8 @@
   
   <div class="h-full flex flex-col" :class="sidebarCollapsed ? 'hidden' : ''">
   <div class="p-6 pb-4 flex-shrink-0">
-    <h3 class="text-xl font-bold text-white mb-2">Workflow Nodes</h3>
-    <p class="text-slate-400 text-sm">Drag and drop to build your workflow</p>
+    <h3 class="text-xl font-bold text-white mb-2 text-center">Workflow Nodes</h3>
+    <p class="text-slate-400 text-sm text-center">Drag and drop to build your workflow</p>
   </div>
   <div class="flex-1 px-6 pb-6">
     <NodePalette @node-drag="onNodeDrag" />
