@@ -20,7 +20,10 @@ A professional-grade visual workflow editor built with Vue 3, Vue Flow, and Tail
 - **🌙 Modern UI/UX** - Responsive design with smooth animations and professional styling
 - **⚙️ Dual Node System** - Both custom workflow nodes and standard n8n automation nodes
 
-*<video controls src="/assets/demo video.mp4" title="Demo Video"></video>* *Demo showing: dragging nodes → connecting them → running workflow → viewing results*
+<a href="assets/demo-video.mp4">
+    <strong>🎥 Watch Full Demo Video</strong>
+  </a>
+  <p><em>Complete demonstration: dragging nodes → connecting them → running workflow → viewing results</em></p>
 
 ---
 
