@@ -4,7 +4,8 @@
 
 A professional-grade visual workflow editor built with Vue 3, Vue Flow, and Tailwind CSS. This application combines custom workflow nodes with integrated n8n automation nodes, enabling users to create sophisticated data processing workflows through an intuitive visual interface with real-time execution monitoring.
 
-*![Screenshot of landing page](image.png) Main application interface showing the sidebar, canvas with workflow nodes and output panel*
+<img src="/assets/preview.png" width="700" alt="Screenshot of landing page">
+  <p style="margin-top: 0; margin-bottom: 0; padding:0;">📸<em> Main application interface showing the sidebar, canvas with workflow nodes and output panel</em></p>
 
 ---
 
@@ -19,7 +20,7 @@ A professional-grade visual workflow editor built with Vue 3, Vue Flow, and Tail
 - **🌙 Modern UI/UX** - Responsive design with smooth animations and professional styling
 - **⚙️ Dual Node System** - Both custom workflow nodes and standard n8n automation nodes
 
-*<video controls src="20250730-0752-28.2321277.mp4" title="Demo Video"></video>* *Demo showing: dragging nodes → connecting them → running workflow → viewing results*
+*<video controls src="/assets/demo video.mp4" title="Demo Video"></video>* *Demo showing: dragging nodes → connecting them → running workflow → viewing results*
 
 ---
 
@@ -155,12 +156,12 @@ This application features a **dual-node architecture** combining custom-built wo
 <table>
   <tr>
     <td align="center" style="padding: 0 20px;">
-      <img src="image-2.png" style="width: 150px;" alt="Custom Nodes"><br>
+      <img src="/assets/custom nodes.png" style="width: 150px;" alt="Custom Nodes"><br>
       <em>Custom Nodes</em><br>
       <small>Get Reviews, Apply K-Means, Cluster to List,<br>Customer Insights, Export to Sheets</small>
     </td>
     <td align="center" style="padding: 0 20px;">
-      <img src="image-3.png" style="width: 150px;" alt="n8n Nodes"><br>
+      <img src="/assets/n8n nodes.png" style="width: 150px;" alt="n8n Nodes"><br>
       <em>n8n Nodes</em><br>
       <small>HTTP Request, Google Sheets,<br>Slack, Email, Webhook</small>
     </td>
@@ -169,7 +170,7 @@ This application features a **dual-node architecture** combining custom-built wo
 
 **Mixed Workflow Example**
 
-<img src="image-1.png" style="width: 350px;" alt="Workflow">
+<img src="/assets/mixed workflow.png" style="width: 350px;" alt="Workflow">
 
 *Complete workflow showing both node types connected together*
 
